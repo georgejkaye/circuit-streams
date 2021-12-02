@@ -1,14 +1,14 @@
 type value = Bottom | True | False | Top
 
 let vtos = function
-| Bottom -> "_"
+| Bottom -> "⊥"
 | True -> "t"
 | False -> "f"
 | Top -> "T"
 
 let all_values = [Bottom; True; False; Top]
-type inputword = value list
-type outputword = value list
+type input = value list
+type output = value list
 
 let rec insert_at a i = function
 | [] -> if i == 0 then [a] else failwith "not enough list"
@@ -35,7 +35,21 @@ let rec possible_inputs = function
     | n -> let recurse = possible_inputs (n-1) in 
            let current = List.map (fun x -> all_insertions x) recurse in
            List.fold_left (fun acc -> fun cur -> concat_no_dups acc cur) [] current
-            
+
+let extend_word w i = 
+    let inputs = possible_inputs i in
+    List.map (fun ins -> w @ [ins]) inputs
+
+let rec possible_words i = function
+| 0 -> [[]]
+| n -> let recurse = possible_words i (n-1) in 
+        let newwords = (List.map (fun w -> extend_word w i) recurse) in
+                                                List.fold_left (fun acc -> fun cur -> concat_no_dups acc cur) [] newwords
+
+let rec copy xs = function
+| 0 -> []
+| 1 -> [xs]
+| n -> xs :: copy xs (n-1)
 
 type mealy = {
     input: int;
@@ -44,15 +58,16 @@ type mealy = {
     functions: (int -> (value list -> int * value list));
 }
 
-let trace mm ins = 
-    let (finish, path, word) = List.fold_left (fun ( state, path, word ) -> fun inp ->
-                        let ( next , outs ) = mm.functions state inp in
-                        ( next , state :: path, outs :: word )
-    ) (0, [], []) ins
-    in
-    (List.rev path, List.rev word)
 
-type path = inputword * outputword
+type trace = int list * value list list
+
+let compute_trace mm ins = 
+    let (finish, path, ins, word) = List.fold_left (fun ( state, path, ins, word ) -> fun inp ->
+                        let ( next , outs ) = mm.functions state inp in
+                        ( next , next :: path, inp :: ins, outs :: word )
+    ) (0, [0], [], []) ins
+    in
+    (List.rev ins, List.rev path, List.rev word)
 
 let rec print_list del print = function
 | [] -> ""
@@ -61,10 +76,19 @@ let rec print_list del print = function
 
 let print_trace t = print_list " " string_of_int t
 
-let print_input i = print_list "" vtos i
+let print_input i = "[" ^ print_list " " vtos i ^ "]"
 let print_word w = print_list " " print_input w
 let print_path = function
 | (inword, trace, outword) -> ( print_word inword, print_trace trace, print_word outword)
+
+let paths mm i = 
+    let ws = possible_words mm.input i in
+    List.fold_left (
+        fun acc -> 
+            fun cur -> 
+                let (states, ins, words) = compute_trace mm cur in
+                (states, ins, words) :: acc                
+     ) [] ws 
 
 let all_paths mm = 
     let rec all_paths' acc current explored word outputs =
@@ -119,3 +143,13 @@ let example = {
     List.map (fun )  *)
 
 in find_paths' mm 0 [] *)
+
+let rec check_for_dups = function
+| [] -> false
+| (x :: xs) -> if List.mem x xs then true else check_for_dups xs
+
+
+open Format
+let rec path_list_printer = function
+| [] -> ()
+| (x :: xs) -> let (a,b,c) = print_path x in print_string a ; print_string "  |  " ; print_string b ; print_string "  |  " ; print_string c ; print_string "\n"; path_list_printer xs
