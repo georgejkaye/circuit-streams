@@ -124,36 +124,7 @@ let all_paths mm =
 in let paths = all_paths' [] 0 [] [] []
 in List.map ( fun (inp, trace, oup) -> {inputs = inp; states = trace; outputs = oup }) paths
 
-let fs0 = function
-| [Bottom] -> (1 , [True; Bottom])
-| [Top] -> (3, [True; Bottom])
-| [x] -> (2, [True; Bottom])
-| xs -> failwith "type error"
 
-let fs1 = function
-| [Bottom] -> (1 , [Bottom; Bottom])
-| [Top] -> (3, [Bottom; Bottom])
-| [x] -> (2, [Bottom; Bottom])
-| xs -> failwith "type error"
-
-let fs2 = function
-| [Bottom] -> (1 , [Bottom; True])
-| [Top] -> (3, [Bottom; True])
-| [x] -> (2, [Bottom; True])
-| xs -> failwith "type error"
-
-let fs3 = function
-| [Bottom] -> (1 , [Bottom; Top])
-| [Top] -> (3, [Bottom; Top])
-| [x] -> (2, [Bottom; Top])
-| xs -> failwith "type error"
-
-let example = {
-    input = 1;
-    output = 2;
-    states = 4;
-    functions = (fun s -> match s with | 0 -> fs0 | 1 -> fs1 | 2 -> fs2 | 3 -> fs3 | n -> failwith "type error");
-}
 
 (* Assign values to each states 
 
@@ -188,30 +159,6 @@ let path_lte xs ys = if List.length xs != List.length ys then None else
     let bits = List.map2 lte xs ys in
     if List.mem None bits then None else if List.mem (Some true) bits && List.mem (Some false) bits then None else List.hd bits
 
-
-
-(* Printers *)
-
-open Format
-let print_all_transitions mm =
-    let print_transitions_from_state i = 
-        let print_transition x = 
-            let (state, output) = mm.functions i x in
-            print_string ("s" ^ (string_of_int i) ^ " --- " ^ (print_input x) ^ " | " ^ (print_input output) ^ " ---> s" ^ (string_of_int state) ^ "\n")
-        in
-        List.fold_left (fun acc -> fun cur -> print_transition cur) () (possible_inputs mm.input)
-    in
-    List.fold_left (fun acc -> fun cur -> print_transitions_from_state cur) () (List.init mm.states (fun i -> i))
-
-let mealy_printer mm = 
-    print_string ((string_of_int mm.input) ^ "--" ^ (string_of_int mm.states) ^ "-->" ^ (string_of_int mm.output)) ; print_string "\n" ; print_all_transitions mm
-    
-
-let rec path_list_printer = function
-| [] -> ()
-| (x :: xs) -> let (a,b,c) = print_path x in print_string a ; print_string "  |  " ; print_string b ; print_string "  |  " ; print_string c ; print_string "\n"; path_list_printer xs
-
-
 type partial_order = int -> int -> bool option
 
 let expo i j = match (i, j) with
@@ -227,3 +174,90 @@ let expo i j = match (i, j) with
 let generate_state_values i po = List.map (
     fun s -> List.init i (fun i -> match po i s with | Some b -> if b then True else False | None -> False)
 ) (List.init i (fun x -> x))
+
+type one_hot_state = value list
+
+type one_hot_mealy = {
+    inputs: int;
+    outputs: int;
+    states: one_hot_state list;
+    functions: (int -> (value list -> int * value list));
+}
+
+let to_one_hot mm assg = {
+    inputs = mm.input;
+    outputs = mm.output;
+    states = assg;
+    functions = mm.functions;
+}
+
+(* Examples *)
+
+let fs0 = function
+| [Bottom] -> (1 , [True; Bottom])
+| [Top] -> (3, [True; Bottom])
+| [x] -> (2, [True; Bottom])
+| xs -> failwith "type error"
+
+let fs1 = function
+| [Bottom] -> (1 , [Bottom; Bottom])
+| [Top] -> (3, [Bottom; Bottom])
+| [x] -> (2, [Bottom; Bottom])
+| xs -> failwith "type error"
+
+let fs2 = function
+| [Bottom] -> (1 , [Bottom; True])
+| [Top] -> (3, [Bottom; True])
+| [x] -> (2, [Bottom; True])
+| xs -> failwith "type error"
+
+let fs3 = function
+| [Bottom] -> (1 , [Bottom; Top])
+| [Top] -> (3, [Bottom; Top])
+| [x] -> (2, [Bottom; Top])
+| xs -> failwith "type error"
+
+let example = {
+    input = 1;
+    output = 2;
+    states = 4;
+    functions = (fun s -> match s with | 0 -> fs0 | 1 -> fs1 | 2 -> fs2 | 3 -> fs3 | n -> failwith "type error");
+}
+let omm = to_one_hot example [[False;False;False;True];[False;False;True;False];[False;True;True;False];[True;True;True;False]];;
+
+
+
+(* Printers *)
+
+open Format
+let print_all_transitions (mm : mealy) =
+    let print_transitions_from_state i = 
+        let print_transition x = 
+            let (state, output) = mm.functions i x in
+            print_string ("s" ^ (string_of_int i) ^ " --- " ^ (print_input x) ^ " | " ^ (print_input output) ^ " ---> s" ^ (string_of_int state) ^ "\n")
+        in
+        List.fold_left (fun acc -> fun cur -> print_transition cur) () (possible_inputs mm.input)
+    in
+    List.fold_left (fun acc -> fun cur -> print_transitions_from_state cur) () (List.init mm.states (fun i -> i))
+
+let print_onehot_table omm = 
+    let print_table_from_state i = 
+        let print_row x =
+            let (state, output) = omm.functions i x in
+            print_string (print_input (List.nth omm.states i) ^ " | " ^ (print_input x) ^ " | " ^ (print_input (List.nth omm.states state)) ^ " | " ^ (print_input output) ^ "\n")
+        in
+        List.fold_left (fun acc -> fun cur -> print_row cur) () (possible_inputs omm.inputs)
+    in
+    List.fold_left (fun acc -> fun cur -> print_table_from_state cur) () (List.init (List.length omm.states) (fun i -> i))
+
+
+let mealy_printer mm = 
+    print_string ((string_of_int mm.input) ^ "--" ^ (string_of_int mm.states) ^ "-->" ^ (string_of_int mm.output)) ; print_string "\n" ; print_all_transitions mm
+
+let one_hot_mealy_printer omm = 
+    print_string ((string_of_int omm.inputs) ^ "--" ^ (string_of_int omm.outputs)) ; print_string "\n" ; print_onehot_table omm
+
+
+let rec path_list_printer = function
+| [] -> ()
+| (x :: xs) -> let (a,b,c) = print_path x in print_string a ; print_string "  |  " ; print_string b ; print_string "  |  " ; print_string c ; print_string "\n"; path_list_printer xs
