@@ -170,6 +170,16 @@ let vlte x y = x == y || match (x, y) with
  
 type 'a partial_order = ('a * ('a list)) list
 
+(**
+   The usual partial order on the value set:
+
+               Top
+              /   \
+          True     False
+              \   /
+               Bot
+
+*)
 let value_po = [
     (Bottom , [Bottom; True; False; Top]);
     (True   , [True ; Top]);
@@ -177,32 +187,35 @@ let value_po = [
     (Top    , [Top])
 ]
 
+(** 
+    Given a partial order po, check if m <= n
+*)
 let po_lte po m n = List.mem n (List.assoc m po)
 
-let tupleltev ms ns =
+(**
+    Given two lists of values, check if ms <= ns.
+    This is computed by computing mi <= ni for each element of ms and ns.
+    If they are all true, then ms <= ns.
+*)
+let tuple_lte ms ns =
     let ltes = List.map2 (fun m -> fun n -> po_lte value_po m n) ms ns in 
     not (List.mem false ltes)
 
+(**
+    Generate a partial order over tuples of values of a certain length m
+ *)
 let tuple_value_po m = 
     let carrier = possible_inputs m in
     List.map (fun vs -> 
-        let lts = List.filter (fun xs -> tupleltev vs xs) carrier
+        let lts = List.filter (fun xs -> tuple_lte vs xs) carrier
         in (vs, lts)
     )  carrier
 
-let expo1 = [
-    (0, []);
-    (1, [1;2;3]);
-    (2, [2;3]);
-    (3, [3]);
-]
-
-let expo2 = [
-    (3, [3;4;5]);
-    (4, [4;5]);
-    (5, [5])
-]
-
+(**
+    Given two partial orders, combine them into one.
+    Works by checking if an item in p appears in q, then adding the corresponding elements from q, 
+    and vice versa.
+*)
 let combine_orders p q = 
     let trans_closure item po =
         let (elm, lts) = item in
@@ -217,47 +230,22 @@ let combine_orders p q =
     let closedq = List.fold_left(fun acc -> fun cur -> (trans_closure cur p) :: acc) [] q in 
     remove_dups (closedp @ closedq)
 
-let generate_order_from_state mm i =
-    let ins = tuple_value_po mm.input in
-    let insandnexts = inputs_and_next_states mm i in
-    remove_dups (List.map (fun (elm, lts) -> (List.assoc elm insandnexts, List.map (fun elmm -> List.assoc elmm insandnexts) lts)) ins)
-
+(**
+    Generates a partial order on the states of a mealy machine, computed such that if 
+    x <= y then T(s)(x) <= T(s)(y). 
+*)
 let generate_partial_order mm = 
     let states = List.init mm.states (fun x -> x) in
-    let order = List.fold_left (fun acc -> fun cur -> combine_orders acc (generate_order_from_state mm cur)) [] states
+    let generate_order_from_state i =
+        let ins = tuple_value_po mm.input in
+        let insandnexts = inputs_and_next_states mm i in
+        remove_dups (List.map (fun (elm, lts) -> (List.assoc elm insandnexts, List.map (fun elmm -> List.assoc elmm insandnexts) lts)) ins)
+    in
+    let order = List.fold_left (fun acc -> fun cur -> combine_orders acc (generate_order_from_state cur)) [] states
     in let incomparables = List.fold_left (fun acc -> fun cur -> if List.mem_assoc cur order then acc else (cur, []) :: acc) [] states
     in incomparables @ order
 
 
-let expo i j = match (i, j) with
-| (0, _) -> None
-| (_, 0) -> None
-| (1, _) -> Some true
-| (_, 1) -> Some false
-| (2, _) -> Some true
-| (_, 2) -> Some false
-| (3, 3) -> Some true
-| _ -> failwith "not enough states"
-
-let generate_state_values i po = List.map (
-    fun s -> List.init i (fun i -> match po i s with | Some b -> if b then True else False | None -> False)
-) (List.init i (fun x -> x))
-
-type one_hot_state = value list
-
-type one_hot_mealy = {
-    inputs: int;
-    outputs: int;
-    states: one_hot_state list;
-    functions: (int -> (value list -> int * value list));
-}
-
-let to_one_hot mm assg = {
-    inputs = mm.input;
-    outputs = mm.output;
-    states = assg;
-    functions = mm.functions;
-}
 
 (* Examples *)
 
@@ -291,7 +279,6 @@ let example = {
     states = 4;
     functions = (fun s -> match s with | 0 -> fs0 | 1 -> fs1 | 2 -> fs2 | 3 -> fs3 | n -> failwith "type error");
 }
-let omm = to_one_hot example [[False;False;False;True];[False;False;True;False];[False;True;True;False];[True;True;True;False]];;
 
 
 let state v = function
@@ -315,6 +302,21 @@ let ex2 = {
     )
 }
 
+let expo1 = [
+    (0, []);
+    (1, [1;2;3]);
+    (2, [2;3]);
+    (3, [3]);
+]
+
+let expo2 = [
+    (3, [3;4;5]);
+    (4, [4;5]);
+    (5, [5])
+]
+
+
+
 (* Printers *)
 
 open Format
@@ -328,23 +330,8 @@ let print_all_transitions (mm : mealy) =
     in
     List.fold_left (fun acc -> fun cur -> print_transitions_from_state cur) () (List.init mm.states (fun i -> i))
 
-let print_onehot_table omm = 
-    let print_table_from_state i = 
-        let print_row x =
-            let (state, output) = omm.functions i x in
-            print_string (print_tuple (List.nth omm.states i) ^ " | " ^ (print_tuple x) ^ " | " ^ (print_tuple (List.nth omm.states state)) ^ " | " ^ (print_tuple output) ^ "\n")
-        in
-        List.fold_left (fun acc -> fun cur -> print_row cur) () (possible_inputs omm.inputs)
-    in
-    List.fold_left (fun acc -> fun cur -> print_table_from_state cur) () (List.init (List.length omm.states) (fun i -> i))
-
-
 let mealy_printer mm = 
     print_string ((string_of_int mm.input) ^ "--" ^ (string_of_int mm.states) ^ "-->" ^ (string_of_int mm.output)) ; print_string "\n" ; print_all_transitions mm
-
-let one_hot_mealy_printer omm = 
-    print_string ((string_of_int omm.inputs) ^ "--" ^ (string_of_int omm.outputs)) ; print_string "\n" ; print_onehot_table omm
-
 
 let rec path_list_printer = function
 | [] -> ()
