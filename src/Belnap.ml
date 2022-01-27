@@ -1,13 +1,33 @@
+open Print
 type value =
     | Bot
     | True
     | False
     | Top
 
+let value_to_string = function
+| Bot -> "⊥ "
+| True -> "t"
+| False -> "f"
+| Top -> "⊤"
+
+let value_list_to_string vs = list_to_string vs "" "" "" value_to_string
+let value_list_list_to_string vss = list_to_string vss "[" "]" " ; " value_list_to_string
+
+let print_value v = print_endline (value_to_string v)
+let print_value_list vs = print_endline (value_list_to_string vs)
+let print_value_list_list vss = print_endline (value_list_list_to_string vss)
+
+
 type gate = 
     | And
     | Or
     | Not
+
+let gate_to_string = function
+| And -> "AND"
+| Or  -> "OR"
+| Not -> "NOT"
 
 let eval_and x y = match (x, y) with
 | (True, x) -> x
