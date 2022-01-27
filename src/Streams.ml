@@ -1,5 +1,5 @@
 open Belnap
-open Print
+open Helpers
 
 type func = 
     | Value of value
@@ -7,6 +7,15 @@ type func =
     | Arg of int * int          
     | Apply of gate * func
     | Par of func list
+
+let depends_on f = 
+    let rec depends_on' = function
+        | Value _ -> []
+        | Arg (i, j) -> [i]
+        | Apply (g, f) -> depends_on' f
+        | Par fs -> List.concat (List.map depends_on' fs)
+    in
+    List.concat (List.map depends_on' f)
 
 let rec func_to_string = function
     | Value v -> value_to_string v
@@ -25,6 +34,8 @@ let rec eval_func f xs = match f with
 
 let eval_func_list fs xs = List.concat (List.map (fun f -> eval_func f xs) fs)
 
+type approximant = int -> func list
+
 (**  
     Causal stream functions are defined for each tick i by using
     approximants f_i : M^i -> N.
@@ -35,7 +46,7 @@ let eval_func_list fs xs = List.concat (List.map (fun f -> eval_func f xs) fs)
 
     Therefore we specify them as (prefix, period)
 *)
-type circuit_stream = (int -> func list) list * (int -> func list) list
+type circuit_stream = approximant list * approximant list
 
 let initial_value cs =
     let (prefix, period) = cs in
@@ -51,6 +62,16 @@ let stream_derivative cs =
         if period == [] then ([], []) 
                         else ([], List.tl period @ [List.hd period])
                     else (List.tl prefix, period)
+
+let is_causal (cs : circuit_stream) =
+    let (prefix, period) = cs in
+    let approximants = prefix @ period in
+    let dependencies = List.mapi (fun i -> fun f -> 
+        let dependencies = depends_on (f i) in
+        if List.length dependencies == 0 then None else Some (max_element dependencies)
+    ) approximants in
+    print_list_def dependencies (fun d -> match d with | None -> "_" | Some d -> string_of_int d);
+    List.for_all2 (fun d -> fun i -> match d with | None -> true | Some d ->  d <= i) dependencies (nats (List.length dependencies))
 
 (* Evaluate a circuit stream up to a given tick *)
 let eval (cs : circuit_stream) (k : int) (s : value list list) = 

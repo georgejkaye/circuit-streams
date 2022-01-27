@@ -1,4 +1,4 @@
-open Print
+open Helpers
 type value =
     | Bot
     | True
@@ -6,18 +6,19 @@ type value =
     | Top
 
 let value_to_string = function
-| Bot -> "⊥ "
+| Bot -> "⊥"
 | True -> "t"
 | False -> "f"
 | Top -> "⊤"
 
-let value_list_to_string vs = list_to_string vs "" "" "" value_to_string
+let value_list_to_string vs = list_to_string vs "" "" " " value_to_string
 let value_list_list_to_string vss = list_to_string vss "[" "]" " ; " value_list_to_string
 
 let print_value v = print_endline (value_to_string v)
 let print_value_list vs = print_endline (value_list_to_string vs)
 let print_value_list_list vss = print_endline (value_list_list_to_string vss)
 
+let constant_stream v n = List.init n (fun n -> v)
 
 type gate = 
     | And

@@ -1,5 +1,6 @@
 open Belnap
 open Streams
+open Helpers
 
 (* Example *)
 
@@ -24,6 +25,6 @@ let f2 i =
 let f : circuit_stream = ([f0], [f1;f2])
 
 let () = 
-    let sigma = [[Top]; [True]; [True]; [True]; [True]; [True]; [True]; [True]] in
+    let sigma = [Top] :: (constant_stream [True] 10) in
     let evaled = eval f 6 sigma in
     print_value_list_list evaled
