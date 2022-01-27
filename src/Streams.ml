@@ -8,6 +8,19 @@ type func =
     | Apply of gate * func
     | Par of func list
 
+let rec outputs = function
+    | Value _ -> 1
+    | Arg _ -> 1
+    | Apply _ -> 1
+    | Par fs -> List.length fs
+
+let rec typecheck = function
+    | Value _ -> true
+    | Arg _ -> true
+    | Apply (g, f) -> 
+        typecheck f && outputs f == gate_inputs g
+    | Par fs -> List.for_all typecheck fs
+
 let depends_on f = 
     let rec depends_on' = function
         | Value _ -> []
@@ -46,25 +59,31 @@ type approximant = int -> func list
 
     Therefore we specify them as (prefix, period)
 *)
-type circuit_stream = approximant list * approximant list
+type circuit_stream = int * int * approximant list * approximant list
 
-let initial_value cs =
-    let (prefix, period) = cs in
+let stream_inputs (cs : circuit_stream) = match cs with
+| (m, _, _, _) -> m
+
+let stream_outputs (cs : circuit_stream) = match cs with
+| (_, n, _, _) -> n
+
+let initial_value (cs : circuit_stream) =
+    let (_, _, prefix, period) = cs in
     if prefix == [] then
         if period == [] then failwith "[initial_value] empty stream"
                         else List.hd period
                     else 
                         List.hd prefix 
 
-let stream_derivative cs =
-    let (prefix, period) = cs in
+let stream_derivative (cs : circuit_stream) =
+    let (inputs, outputs, prefix, period) = cs in
     if prefix == [] then     
-        if period == [] then ([], []) 
-                        else ([], List.tl period @ [List.hd period])
-                    else (List.tl prefix, period)
+        if period == [] then (inputs, outputs, [], []) 
+                        else (inputs, outputs, [], List.tl period @ [List.hd period])
+                    else (inputs, outputs, List.tl prefix, period)
 
 let is_causal (cs : circuit_stream) =
-    let (prefix, period) = cs in
+    let (_, _, prefix, period) = cs in
     let approximants = prefix @ period in
     let dependencies = List.mapi (fun i -> fun f -> 
         let dependencies = depends_on (f i) in

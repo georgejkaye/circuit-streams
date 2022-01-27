@@ -30,6 +30,11 @@ let gate_to_string = function
 | Or  -> "OR"
 | Not -> "NOT"
 
+let gate_inputs = function
+| And -> 2
+| Or -> 2
+| Not -> 1
+
 let eval_and x y = match (x, y) with
 | (True, x) -> x
 | (x, True) -> x

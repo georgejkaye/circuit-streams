@@ -22,7 +22,7 @@ let f2 i =
         Value False
     ]
 
-let f : circuit_stream = ([f0], [f1;f2])
+let f : circuit_stream = (1, 1, [f0], [f1;f2])
 
 let () = 
     let sigma = [Top] :: (constant_stream [True] 10) in
