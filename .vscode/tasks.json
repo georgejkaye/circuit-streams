@@ -11,12 +11,12 @@
         "group": {
           "kind": "build",
           "isDefault": true
-        }
+        },
       },
       {
         "label": "Run ocaml",
         "type": "shell",
-        "dependsOn": "Compile ocaml"
+        "dependsOn": "Compile ocaml",
         "command": [
           "${workspaceFolder}/.vscode/run.sh",
           "${relativeFile}"

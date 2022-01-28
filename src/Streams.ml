@@ -1,67 +1,19 @@
 open Belnap
-open Helpers
-
-type func = 
-    | Value of value
-    (* Arg(i,j) is the jth element of the input at tick i *)
-    | Arg of int * int          
-    | Apply of gate * func
-    | Par of func list
-
-let rec outputs = function
-    | Value _ -> 1
-    | Arg _ -> 1
-    | Apply _ -> 1
-    | Par fs -> List.length fs
-
-let rec typecheck = function
-    | Value _ -> true
-    | Arg _ -> true
-    | Apply (g, f) -> 
-        typecheck f && outputs f == gate_inputs g
-    | Par fs -> List.for_all typecheck fs
-
-let depends_on f = 
-    let rec depends_on' = function
-        | Value _ -> []
-        | Arg (i, j) -> [i]
-        | Apply (g, f) -> depends_on' f
-        | Par fs -> List.concat (List.map depends_on' fs)
-    in
-    List.concat (List.map depends_on' f)
-
-let rec func_to_string = function
-    | Value v -> value_to_string v
-    | Arg (i, j) -> "σ(" ^ (string_of_int i) ^ ")[" ^ (string_of_int j) ^ "]"
-    | Apply (g, f) -> (gate_to_string g) ^ "(" ^ (func_to_string f) ^ ")"
-    | Par fs -> list_to_string fs "(" ")" ", " func_to_string
-
-let rec eval_func f xs = match f with
-    | Value v -> [v]
-    | Arg (i, j) -> [List.nth (List.nth xs i) j]
-    | Apply (g, f) -> 
-        let f = eval_func f xs in 
-        [eval_gate g f]
-    | Par fs -> 
-        List.concat (List.map (fun f -> eval_func f xs) fs)
-
-let eval_func_list fs xs = List.concat (List.map (fun f -> eval_func f xs) fs)
-
-type approximant = int -> func list
+open Approximant
 
 (**  
     Causal stream functions are defined for each tick i by using
     approximants f_i : M^i -> N.
 
-    In the case of circuit stream functions, there is a finite
-    prefix of approximants followed by a finite recurring period
-    of approximants.
-
-    Therefore we specify them as (prefix, period)
+    circuit_stream = (inputs, outputs, approximant function)
 *)
-type circuit_stream = int * int * approximant list * approximant list
+type circuit_stream = {
+    behaviour: int -> approximant
+}
 
-let stream_inputs (cs : circuit_stream) = match cs with
+let output_at cs = cs.behaviour
+
+(* let stream_inputs (cs : circuit_stream) = match cs with
 | (m, _, _, _) -> m
 
 let stream_outputs (cs : circuit_stream) = match cs with
@@ -102,4 +54,4 @@ let eval (cs : circuit_stream) (k : int) (s : value list list) =
         else
             let tl = stream_derivative cs in
             hd_eval :: eval' (i+1) tl (k-1) sigma
-in eval' 0 cs k s
+in eval' 0 cs k s *)

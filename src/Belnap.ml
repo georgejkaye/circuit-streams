@@ -24,16 +24,19 @@ type gate =
     | And
     | Or
     | Not
+    | Join
 
 let gate_to_string = function
 | And -> "AND"
 | Or  -> "OR"
 | Not -> "NOT"
+| Join -> "⊔"
 
 let gate_inputs = function
 | And -> 2
 | Or -> 2
 | Not -> 1
+| Join -> 2
 
 let eval_and x y = match (x, y) with
 | (True, x) -> x
@@ -61,7 +64,19 @@ let eval_not x = match x with
 | False -> True
 | Top -> Top
 
+let eval_join x y = match (x, y) with
+| (Top, _) -> Top
+| (_, Top) -> Top
+| (False, True) -> Top
+| (True, False) -> Top
+| (False, _) -> False
+| (_, False) -> False
+| (True, _) -> True
+| (_, True) -> True
+| (Bot, Bot) -> Bot
+
 let eval_gate g xs = match g with
 | And -> eval_and (List.nth xs 0) (List.nth xs 1)
 | Or  -> eval_or (List.nth xs 0) (List.nth xs 1)
 | Not -> eval_not (List.nth xs 0)
+| Join -> eval_join (List.nth xs 0) (List.nth xs 1)
