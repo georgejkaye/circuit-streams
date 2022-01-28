@@ -1,5 +1,6 @@
 open Belnap
 open Approximant
+open Helpers
 
 (**  
     Causal stream functions are defined for each tick i by using
@@ -11,7 +12,13 @@ type circuit_stream = {
     behaviour: int -> approximant
 }
 
-let output_at cs = cs.behaviour
+let output_at cs xs i = 
+    let approximant = cs.behaviour i in
+    eval_func approximant xs
+
+let simulate cs xs = 
+    List.map (fun i -> output_at cs xs i) (nats (List.length xs))
+
 
 (* let stream_inputs (cs : circuit_stream) = match cs with
 | (m, _, _, _) -> m
