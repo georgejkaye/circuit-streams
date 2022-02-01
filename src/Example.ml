@@ -40,15 +40,9 @@ let g = {
 }
 
 let () = 
-    let sigma = [[Bot] ; [True] ; [Top] ; [True] ; [False] ; [Bot]] in
-    print_value_list_list (simulate g sigma);
+    print_stream f 5;
     print_endline "";
-    print_stream f 6;
-    print_stream g 6;
-    (* print_endline (func_to_string "f" (f.behaviour 0));
-    print_endline (func_to_string "f" (f.behaviour 1));
-    print_endline (func_to_string "f" (f.behaviour 2));
-    print_endline (func_to_string "f" (fex.behaviour 2)) *)
-    (* let sigma = [Top] :: (constant_stream [True] 10) in () *)
-    (* let evaled = eval f 6 sigma in
-    print_value_list_list evaled *)
+    print_string "Initial output on N: "; 
+    print_value_list (initial_output f [Bot]);
+    print_string "Stream derivative on N: "; 
+    print_stream (stream_derivative f [Bot]) 5;

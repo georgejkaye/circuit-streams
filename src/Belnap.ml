@@ -6,10 +6,10 @@ type value =
     | Top
 
 let value_to_string = function
-| Bot -> "⊥"
-| True -> "t"
-| False -> "f"
-| Top -> "⊤"
+| Bot -> "N"
+| True -> "T"
+| False -> "F"
+| Top -> "B"
 
 let all_inputs = [Bot; True; False; Top]
 
