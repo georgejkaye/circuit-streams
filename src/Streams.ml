@@ -24,6 +24,9 @@ let get_nth_behaviour cs i =
         let i = i mod List.length cs.period_behvaiour in
         List.nth cs.period_behvaiour i
 
+let get_n_behaviours cs i =
+    List.map (get_nth_behaviour cs) (nats i)
+
 let empty_history = {
     size = 0;
     history = [];
@@ -60,15 +63,16 @@ let stream_derivative cs a =
         period_behvaiour = new_period_evaled;
     }
 
-
-
-let output_at cs xs i = 
-    let approximant = get_nth_behaviour cs i in
-    let history = get_history_up_to cs i in
-    eval_func history approximant xs
+let tick cs a = (initial_output cs a, stream_derivative cs a)
 
 let simulate cs xs = 
-    List.map (fun i -> output_at cs xs i) (nats (List.length xs))
+    List.rev (fst (
+        List.fold_left 
+            (fun (outputs , func) -> fun cur -> 
+                let (initial, derivative) = tick func cur in
+                (initial :: outputs, derivative)    
+        )  ([], cs) xs
+    ))
 
 let stream_to_string_list cs i =
     let behaviours = List.map (get_nth_behaviour cs) (nats i) in

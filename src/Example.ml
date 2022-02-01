@@ -40,9 +40,11 @@ let g = {
 }
 
 let () = 
+    let sigma = [[Bot] ; [True] ; [Bot] ; [True] ; [Bot] ; [Top]] in
     print_stream f 5;
     print_endline "";
     print_string "Initial output on N: "; 
     print_value_list (initial_output f [Bot]);
     print_string "Stream derivative on N: "; 
     print_stream (stream_derivative f [Bot]) 5;
+    print_value_list_list (simulate f sigma)
