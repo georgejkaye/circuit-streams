@@ -1,14 +1,6 @@
 open Belnap
 open Helpers
 
-type func = 
-    | Value of value
-    (* Input(i,j) is the jth element of the input at tick i *)
-    | Input of int * int          
-    | Apply of gate * func
-    | Par of func list
-
-
 type approximant_func =
     | Value of value
     | Input of int * int
@@ -24,7 +16,7 @@ type approximant = {
     func: approximant_func list;
 }
 
-let get_past_approximant af n = List.nth af.history (af.current - n - 1)
+let get_nth_approximant af n = List.nth af.history (af.current - n - 1)
 
 let rec outputs history = function
     | Value _ -> 1
@@ -41,7 +33,7 @@ let rec typecheck af =
     | Value _ -> true
     | Input _ -> true
     | Apply (g, f) -> List.length f == gate_inputs g
-    | Approx (i, j) -> typecheck (get_past_approximant af i)
+    | Approx (i, j) -> typecheck (get_nth_approximant af i)
     in List.for_all (typecheck') af.func
 
 let rec depends_on ap =
@@ -49,7 +41,7 @@ let rec depends_on ap =
         | Value _       -> []
         | Input (i, _)  -> [i]
         | Apply (g, f)  -> List.concat (List.map depends_on' f)
-        | Approx (i, j) -> depends_on (get_past_approximant ap i)
+        | Approx (i, j) -> depends_on (get_nth_approximant ap i)
     in List.concat (List.map depends_on' ap.func)
     
 
@@ -57,10 +49,11 @@ let rec func_to_string id af =
     let rec func_to_string' = function
     | Value v -> value_to_string v
     | Input (i, j) -> "σ(" ^ (string_of_int i) ^ ")[" ^ (string_of_int j) ^ "]"
-    | Apply (g, f) -> (gate_to_string g) ^ "(" ^ List.fold_left (fun acc -> fun cur -> acc ^ ", " ^ func_to_string' cur) "" f ^ ")"
+    | Apply (g, f) -> 
+        let arguments = (List.fold_left (fun acc -> fun cur -> acc ^ ", " ^ func_to_string' cur) (func_to_string' (List.hd f)) (List.tl f)) in 
+        (gate_to_string g) ^ "(" ^ arguments ^ ")"
     | Approx (i, j) -> id ^ (string_of_int i) ^ "(σ)" ^ "[" ^ (string_of_int j) ^ "]"
-    in let tuple = List.fold_left (fun acc -> fun cur -> acc ^ (func_to_string' cur) ^ ", ") "" af.func
-    in let tuple = if String.length tuple >= 2 then String.sub tuple 0 (String.length tuple - 2) else tuple
+    in let tuple = List.fold_left (fun acc -> fun cur -> acc ^ (func_to_string' cur) ^ ", ") (func_to_string' (List.hd af.func)) (List.tl af.func)
     in "(" ^ tuple ^  ")"
 
 
@@ -70,5 +63,19 @@ let rec eval_func ap xs =
     | Input (i, j) -> List.nth (List.nth xs i) j
     | Apply (g, fs) -> 
         let fs = List.map eval_func' fs in eval_gate g fs
-    | Approx (i ,j) -> eval_func' (List.nth (get_past_approximant ap i).func j)
+    | Approx (i ,j) -> eval_func' (List.nth (get_nth_approximant ap i).func j)
     in List.map eval_func' ap.func
+
+let expand ap = 
+    let rec expand' = function
+    | Value v -> Value v
+    | Input (i, j) -> Input (i, j)
+    | Apply (g, f) -> Apply (g, List.map expand' f)
+    | Approx (i, j) -> expand' (List.nth (get_nth_approximant ap i).func j)
+    in {
+        inputs = ap.inputs;
+        outputs = ap.outputs;
+        current = ap.current;
+        history = ap.history;
+        func = List.map expand' ap.func;
+    }
