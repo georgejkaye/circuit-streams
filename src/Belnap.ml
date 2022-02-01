@@ -11,6 +11,8 @@ let value_to_string = function
 | False -> "f"
 | Top -> "⊤"
 
+let all_inputs = [Bot; True; False; Top]
+
 let value_list_to_string vs = list_to_string vs "" "" " " value_to_string
 let value_list_list_to_string vss = list_to_string vss "[" "]" " ; " value_list_to_string
 
