@@ -66,8 +66,8 @@ let stream_derivative cs a =
         period_behvaiour = new_period_evaled;
     }
 
-let compute_all_stream_derivatives cs =
-    List.map (stream_derivative cs) (all_inputs_of_length cs.inputs)
+let get_next_outputs_and_derivatives cs =
+    List.map (fun vs -> (vs, initial_output cs vs, stream_derivative cs vs)) (all_inputs_of_length cs.inputs)
 
 let tick cs a = (initial_output cs a, stream_derivative cs a)
 
