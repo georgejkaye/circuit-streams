@@ -28,3 +28,23 @@ let nats n = List.init n (fun x -> x)
 let rec revnats n = match n with
 | 0 -> [0]
 | n -> n :: revnats (n-1)
+
+let insert_at a i xs = 
+    let rec insert_at' acc a i = function
+    | [] -> if i == 0 then (acc, [a]) else failwith "[insert_at] Not enough list"
+    | (x :: xs) -> if i == 0 then (acc, a :: x :: xs) else insert_at' (x :: acc) a (i-1) xs  
+    in 
+    let (acc, tail) = insert_at' [] a i xs
+    in (List.rev acc) @ tail 
+
+let all_insertions a xs = 
+    List.map (fun i -> insert_at a i xs) (nats (List.length xs + 1))    
+
+let remove_duplicates xs = 
+    let rec remove_duplicates' acc = function
+        | [] -> acc
+        | (x :: xs) -> if (List.mem x acc) then remove_duplicates' acc xs 
+                                           else remove_duplicates' (x :: acc) xs
+    in List.rev (remove_duplicates' [] xs)
+
+

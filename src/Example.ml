@@ -2,6 +2,7 @@ open Belnap
 open Approximant
 open Streams
 open Helpers
+open Mealy
 
 (* Example *)
 
@@ -41,10 +42,15 @@ let g = {
 
 let () = 
     let sigma = [[Bot] ; [True] ; [Bot] ; [True] ; [Bot] ; [Top]] in
-    print_stream f 5;
-    print_endline "";
-    print_string "Initial output on N: "; 
-    print_value_list (initial_output f [Bot]);
-    print_string "Stream derivative on N: "; 
-    print_stream (stream_derivative f [Bot]) 5;
-    print_value_list_list (simulate f sigma)
+    let dervs = stream_to_mealy f in
+    (* let dervs = compute_all_stream_derivatives f in
+    print_short_stream f;
+    print_stream 1 f;
+    (* if stream_equality (List.nth dervs 0) f then print_endline "is equal" else print_endline "not equal"; *)
+    List.fold_left 
+        (fun _ -> fun cur -> print_short_stream cur ; print_stream 1 cur ; 
+            if stream_equality cur f then print_endline "equal" else print_endline "not equal"
+        )
+        () dervs;
+     *)
+    List.fold_left (fun _ -> fun cur -> print_short_stream cur; print_endline "") () dervs 

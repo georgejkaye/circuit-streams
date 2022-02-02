@@ -20,6 +20,13 @@ type approximant = {
     func: approximant_func list;
 }
 
+let rec func_equality f g = match (f, g) with
+    | (Value v, Value w) -> v == w
+    | (Input(i, j), Input(k, l)) -> i == k && j == l
+    | (Apply(g, f), Apply(h, k)) -> g == h && List.for_all2 func_equality f k
+    | (Approx(i, j), Approx(k, l)) -> i == k && j == l
+    | _ -> false
+
 type history = {
     size: int;
     history: approximant list;

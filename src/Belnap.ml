@@ -13,6 +13,18 @@ let value_to_string = function
 
 let all_inputs = [Bot; True; False; Top]
 
+(* TODO this is very slow for n > 4 *)
+let all_inputs_of_length n = 
+    let rec all_inputs_of_length' = function
+        | 0 -> [[]]
+        | n -> let rest = all_inputs_of_length' (n-1) in
+            List.fold_left (fun acc -> fun v -> 
+                    acc @ List.fold_left (fun acc -> fun cur -> acc @ (all_insertions v cur)) [] rest 
+            )
+            []
+            all_inputs
+    in remove_duplicates (all_inputs_of_length' n)
+
 let value_list_to_string vs = list_to_string vs "" "" " " value_to_string
 let value_list_list_to_string vss = list_to_string vss "[" "]" " ; " value_list_to_string
 

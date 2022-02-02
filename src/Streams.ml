@@ -16,6 +16,9 @@ type circuit_stream = {
     period_behvaiour: approximant list
 }
 
+let defined_behaviour cs = 
+    (List.length cs.prefix_behaviour) + (List.length cs.period_behvaiour)
+
 let get_nth_behaviour cs i = 
     if i < List.length cs.prefix_behaviour then
         List.nth cs.prefix_behaviour i
@@ -63,6 +66,9 @@ let stream_derivative cs a =
         period_behvaiour = new_period_evaled;
     }
 
+let compute_all_stream_derivatives cs =
+    List.map (stream_derivative cs) (all_inputs_of_length cs.inputs)
+
 let tick cs a = (initial_output cs a, stream_derivative cs a)
 
 let simulate cs xs = 
@@ -74,10 +80,19 @@ let simulate cs xs =
         )  ([], cs) xs
     ))
 
-let stream_to_string_list cs i =
+let stream_to_string_list i cs =
     let behaviours = List.map (get_nth_behaviour cs) (nats i) in
     List.mapi (func_to_string cs.name) behaviours
 
-let print_stream cs i = 
-    let strings = stream_to_string_list cs i in
+let stream_equality cs ds = 
+    let longest = max (defined_behaviour cs) (defined_behaviour ds) in
+    let csb = get_n_behaviours cs longest in
+    let dsb = get_n_behaviours ds longest in
+    List.fold_left2 (fun acc -> fun c -> fun d -> acc &&
+        List.fold_left2 (fun acc -> fun c -> fun d -> acc && func_equality c d ) true c.func d.func)
+    true csb dsb
+
+let print_short_stream cs = print_string cs.name
+let print_stream i cs = 
+    let strings = stream_to_string_list i cs in
     List.fold_left (fun _ -> fun cur -> print_endline cur) () strings
