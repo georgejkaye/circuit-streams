@@ -3,6 +3,7 @@ open Approximant
 open Streams
 open Helpers
 open Mealy
+open Dot
 
 (* Example *)
 
@@ -42,4 +43,4 @@ let g = {
 
 let () = 
     let mealy = stream_to_mealy f in
-    print_endline (mealy_to_string mealy)
+    write_dot_to_file mealy "mealy.dot"

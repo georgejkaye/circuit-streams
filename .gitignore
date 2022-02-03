@@ -1,1 +1,5 @@
+.vscode
 **/_build/
+*.svg
+*.png
+*.dot

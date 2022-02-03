@@ -6,7 +6,7 @@ type mealy = {
     outputs: int;
     states: int;
     initial: int;
-    (* T : S -> M -> S * N*)
+    (* T : S -> M -> S * N *)
     transition_function: ((int * value list) * (value list * int)) list;
 }
 
