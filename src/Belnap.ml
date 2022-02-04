@@ -25,7 +25,7 @@ let all_inputs_of_length n =
             all_inputs
     in remove_duplicates (all_inputs_of_length' n)
 
-let value_list_to_string vs = list_to_string vs "" "" " " value_to_string
+let value_list_to_string vs = list_to_string vs "" "" "" value_to_string
 let value_list_list_to_string vss = list_to_string vss "[" "]" " ; " value_list_to_string
 
 let print_value v = print_endline (value_to_string v)

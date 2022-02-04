@@ -42,5 +42,5 @@ let g = {
 }
 
 let () = 
-    let mealy = stream_to_mealy f in
+    let mealy = stream_to_mealy g in
     write_dot_to_file mealy "mealy.dot"
