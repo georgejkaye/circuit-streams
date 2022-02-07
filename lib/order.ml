@@ -33,7 +33,7 @@ let combine_orders po qo =
         new_empty_order
         qo.elements
     in
-    let new_ordering = List.map (fun (p, ps) -> 
+    let new_ordering = List.map (fun (p, _) -> 
         let p_elements = match List.assoc_opt p po.order with
             | None -> []
             | Some xs -> xs

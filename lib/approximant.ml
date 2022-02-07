@@ -36,7 +36,7 @@ let drop_history hist i =
     let new_history = drop (i+1) hist.history in
     (fst new_history, { size = hist.size - i ; history = snd new_history})
 
-let get_nth_approximant af hist n = List.nth hist.history (hist.size - n - 1)
+let get_nth_approximant hist n = List.nth hist.history (hist.size - n - 1)
 (* When referencing an approximant of f within another approximant, 
    f0 means the current one, f1 means the one before that, and so on 
    However, not that we shouldn't reference the current approximant since we've 
@@ -48,18 +48,18 @@ let rec outputs history = function
     | Value _ -> 1
     | Input _ -> 1
     | Apply _ -> 1
-    | Approx (i, j) -> 
+    | Approx (i, _) -> 
         let current = List.length history in
         let diff = current - i in
         let (approx, history) = drop diff history in
         List.fold_left (fun i -> fun f -> i + outputs history f) 0 approx.func
  
 let rec typecheck af hist = 
-    let rec typecheck' = function 
+    let typecheck' = function 
     | Value _ -> true
     | Input _ -> true
     | Apply (g, f) -> List.length f == gate_inputs g
-    | Approx (i, j) -> 
+    | Approx (i, _) -> 
         let hist = drop_history hist i in
         typecheck (fst hist) (snd hist) 
     in List.for_all (typecheck') af.func
@@ -68,14 +68,14 @@ let rec depends_on ap hist =
     let rec depends_on' = function
         | Value _       -> []
         | Input (i, _)  -> [i]
-        | Apply (g, f)  -> List.concat (List.map depends_on' f)
-        | Approx (i, j) -> 
+        | Apply (_, f)  -> List.concat (List.map depends_on' f)
+        | Approx (i, _) -> 
             let hist = drop_history hist i in
             depends_on (fst hist) (snd hist)
     in List.concat (List.map depends_on' ap.func)
     
 
-let rec func_to_string id n af =
+let func_to_string id n af =
     let rec func_to_string' = function
     | Value v -> value_to_string v
     | Input (i, j) -> "σ(" ^ (string_of_int (n-i)) ^ ")[" ^ (string_of_int j) ^ "]"
@@ -87,7 +87,7 @@ let rec func_to_string id n af =
     in "(" ^ tuple ^  ")"
 
 
-let rec eval_func hist ap xs = 
+let eval_func hist ap xs = 
     let rec eval_func' = function
     | Value v -> v
     | Input (i, j) -> List.nth (List.nth xs i) j
@@ -99,8 +99,8 @@ let rec eval_func hist ap xs =
 let partial_eval_join x y = match (x, y) with
     | (Value Bot, y) -> y
     | (x, Value Bot) -> x
-    | (Value Top, y) -> Value Top
-    | (x, Value Top) -> Value Top
+    | (Value Top, _) -> Value Top
+    | (_, Value Top) -> Value Top
     | (Value True, Value False) -> Value Top
     | (Value False, Value True) -> Value Top
     | (Value True, Value True) -> Value True
@@ -111,8 +111,8 @@ let partial_eval_or x y = match (x, y) with
     | (Value Bot, Value Bot) -> Value Bot
     | (Value False, y) -> y
     | (x, Value False) -> x
-    | (Value True, y) -> Value True
-    | (x, Value True) -> Value True
+    | (Value True, _) -> Value True
+    | (_, Value True) -> Value True
     | (Value Top, Value Top) -> Value Top
     | (Value Bot, Value Top) -> Value True
     | (Value Top, Value Bot) -> Value True
@@ -142,7 +142,7 @@ let partial_eval_gate g xs = match g with
 | Not -> partial_eval_not (List.nth xs 0)
 | Join -> partial_eval_join (List.nth xs 0) (List.nth xs 1)
 
-let rec partial_eval hist a init n ap =
+let partial_eval a init n ap =
     let rec partial_eval' = function
     | Value v -> Value v
     | Input (i, j) -> if (n - i) == 0 then Value (List.nth a j) else Input (i, j)

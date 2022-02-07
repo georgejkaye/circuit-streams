@@ -1,0 +1,4 @@
+(executable
+ (public_name circuit_streams)
+ (name main)
+ (libraries circuit_streams))

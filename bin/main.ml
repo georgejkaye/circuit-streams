@@ -1,10 +1,8 @@
-open Belnap
-open Approximant
-open Streams
-open Helpers
-open Mealy
-open Dot
-open Order
+open Circuit_streams.Belnap
+open Circuit_streams.Approximant
+open Circuit_streams.Streams
+open Circuit_streams.Mealy
+open Circuit_streams.Dot
 
 (* Example *)
 
@@ -12,7 +10,7 @@ let f0 = {
     func = [ Input (0, 0) ]
 }
 
-let rec fkp1 = {
+let fkp1 = {
     func = [ Apply (Join, [Approx (1, 0) ; Input (0, 0)])]
 }
 
@@ -28,7 +26,7 @@ let g0 = {
     func = [ Value True ; Value Bot ]
 }
 
-let rec g2kp1 = {
+let g2kp1 = {
     func = [ Value Bot ; Input (1, 0) ]
 } and g2kp2 = {
     func = [ Value Bot ; Value False ]

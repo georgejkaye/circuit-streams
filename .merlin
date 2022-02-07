@@ -1,4 +1,0 @@
-PKG ocamlbuild
-
-B _build/**
-S src/**

@@ -1,0 +1,36 @@
+name: Compile and run example
+
+on:
+  - push
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+        ocaml-version:
+          - 4.11.0
+          - 4.10.1
+          - 4.09.1
+          - 4.08.1
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set up repository
+        uses: actions/checkout@v2
+      - name: Use OCaml ${{ matrix.ocaml-version }}
+        uses: avsm/setup-ocaml@v1
+        with:
+          ocaml-version: ${{ matrix.ocaml-version }}
+      - name: Install ocamlfind
+        run: opam install ocamlfind
+      - name: Compile 
+        
+      - name: Upload the build artefact
+        uses: actions/upload-artifact@v2
+        with:
+          name: output.svg
+          path: mealy.svg

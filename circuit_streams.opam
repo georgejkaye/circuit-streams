@@ -1,0 +1,11 @@
+opam-version: "2.0"
+version: "1.0"
+maintainer: "g.j.kaye@cs.bham.ac.uk"
+authors: ["George Kaye"]
+homepage: "https://github.com/georgejkaye/circuit-streams"
+bug-reports: "https://github.com/georgejkaye/circuit-streams/issues"
+dev-repo: "git+https://github.com/georgejkaye/circuit-streams.git"
+license: "GPLv3.0"
+build: [
+    ["dune" "build" "-p" name "-j" jobs]
+]

@@ -10,14 +10,16 @@ At a high level, the class of stream functions we are interested in have three p
 
 ## Example
 
-To run the example, execute the following commands:
+To run the example, execute the following command:
 
 ```sh
-# Compile an executable
-$ ocamlbuild -use-ocamlfind src/Example.native
-# Run the executable
-$ ./src/Example.native
-# Generate an svg of the resulting machine
+$ dune exec bin/main.exe
+```
+
+This will create an output file `mealy.dot`.
+You can then generate the corresponding svg with
+
+```sh
 $ dot -Tsvg mealy.dot -O
 ```
 

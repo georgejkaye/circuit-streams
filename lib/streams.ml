@@ -52,7 +52,7 @@ let initial_output cs a =
 
 let stream_derivative cs a = 
     let initial = initial_output cs a in
-    let evalf j = List.mapi (fun i -> fun f -> partial_eval (get_history_up_to cs (i + j)) a initial (i + j) f) in
+    let evalf j = List.mapi (fun i -> fun f -> partial_eval a initial (i + j) f) in
     let prefix_length = List.length cs.prefix_behaviour in
     let old_period = if prefix_length < 1 then 
         let hd = List.hd cs.period_behvaiour in

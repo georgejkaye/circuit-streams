@@ -1,4 +1,3 @@
-
 let rec drop n = function
     | [] -> failwith "[drop] Not enough list"
     | (x :: xs) -> 
