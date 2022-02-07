@@ -4,6 +4,7 @@ open Streams
 open Helpers
 open Mealy
 open Dot
+open Order
 
 (* Example *)
 
@@ -41,6 +42,32 @@ let g = {
     period_behvaiour = [g2kp1; g2kp2]
 }
 
+let h0 = {
+    func = [ Value Bot ]
+}
+
+let h1 = {
+    func = [ Value Bot ]
+}
+
+let h2 = {
+    func = [ Value True ]
+}
+
+let h3 = {
+    func = [ Value False ]
+}
+
+let h = {
+    name = "h";
+    inputs = 0;
+    outputs = 1;
+    prefix_behaviour = [h0;h1];
+    period_behvaiour = [h2;h3]
+}
+
 let () = 
-    let mealy = stream_to_mealy g in
-    write_dot_to_file mealy "mealy.dot"
+    let mealy = stream_to_mealy f in
+    write_dot_to_file mealy "mealy.dot";
+    let mealy_ordering = assign_state_order mealy in
+    print_endline (partial_order_to_string mealy_ordering string_of_int)

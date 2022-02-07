@@ -1,5 +1,7 @@
 open Belnap
 open Streams
+open Helpers
+open Order
 
 type mealy = {
     inputs: int;
@@ -73,6 +75,28 @@ let stream_to_mealy cs =
         transition_function = updated_transition_fn 
     }
 
+let assign_state_order mm = 
+    let get_order_from_state n = 
+        let possible_inputs = all_inputs_of_length (mm.inputs) in
+        let next_states = List.map (fun x -> (x, snd (List.assoc (n, x) mm.transition_function))) possible_inputs in
+        derive_order_from_existing (value_list_order (mm.inputs)) next_states
+    in
+    let initial_order = {
+        elements = nats mm.states;
+        order    = List.init mm.states (fun x -> (x, [])) 
+    } in
+    List.fold_left 
+    (fun acc -> fun cur ->
+        let new_order = get_order_from_state cur in
+        let comborder = combine_orders acc new_order in
+        comborder
+    
+    )
+    initial_order
+    (nats mm.states)
+
+
+(* Printer *)
 
 let mealy_to_string mm = 
     let each_state = List.map 
@@ -92,14 +116,3 @@ let mealy_to_string mm =
         (fun acc -> fun cur -> acc ^ cur ^ "\n") 
         "" 
         each_state
-
-
-
-
-
-
-(* in {
-    inputs = cs.inputs;
-    outputs = cs.outputs;
-    states = 
-} *)

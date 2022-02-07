@@ -38,9 +38,9 @@ let drop_history hist i =
 
 let get_nth_approximant af hist n = List.nth hist.history (hist.size - n - 1)
 (* When referencing an approximant of f within another approximant, 
-   f0 means the previous one, f1 means the one before that, and so on 
-   We don't need to reference the current approximant since we've already
-   eliminated 'instant feedback' by using the fixpoint operator
+   f0 means the current one, f1 means the one before that, and so on 
+   However, not that we shouldn't reference the current approximant since we've 
+   already eliminated 'instant feedback' by using the fixpoint operator
 *)
 let get_nth_most_recent_approximant hist n = List.nth hist.history n
 

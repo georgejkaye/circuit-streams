@@ -5,6 +5,14 @@ let rec drop n = function
         if n == 0 then failwith "[drop] Can't drop nothing"
         else if n == 1 then (x, xs) else drop (n-1) xs
 
+let remove a xs = 
+    List.rev 
+        (List.fold_left 
+            (fun acc -> fun cur -> if cur == a then acc else cur :: acc)
+            []
+            xs
+        )
+
 let list_to_string xs lbracket rbracket delimiter to_string = 
     let rec list_to_string' = function
     | [] -> ""
@@ -41,10 +49,11 @@ let all_insertions a xs =
     List.map (fun i -> insert_at a i xs) (nats (List.length xs + 1))    
 
 let remove_duplicates xs = 
-    let rec remove_duplicates' acc = function
-        | [] -> acc
-        | (x :: xs) -> if (List.mem x acc) then remove_duplicates' acc xs 
-                                           else remove_duplicates' (x :: acc) xs
-    in List.rev (remove_duplicates' [] xs)
+    List.rev (
+        List.fold_left 
+            (fun acc -> fun cur -> if List.mem cur acc then acc else cur :: acc)
+            []
+            xs
+    )
 
 
