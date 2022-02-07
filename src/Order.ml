@@ -5,7 +5,7 @@ type 'a partial_order = {
     order: ('a * 'a list) list
 }
 
-let po_lte po x y = match List.assoc_opt x po.order with
+let po_lte po x y = if x == y then true else match List.assoc_opt x po.order with
     | None -> false
     | Some ys -> List.mem y ys
 

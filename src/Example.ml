@@ -67,7 +67,6 @@ let h = {
 }
 
 let () = 
-    let mealy = stream_to_mealy f in
-    write_dot_to_file mealy "mealy.dot";
-    let mealy_ordering = assign_state_order mealy in
-    print_endline (partial_order_to_string mealy_ordering string_of_int)
+    let mealy = stream_to_mealy g in
+    let ord = assign_state_values mealy in
+    write_assigned_mealy_dot_to_file mealy ord "mealy.dot";
