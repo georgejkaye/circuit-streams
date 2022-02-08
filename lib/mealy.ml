@@ -2,6 +2,7 @@ open Belnap
 open Streams
 open Helpers
 open Order
+open Function
 
 type mealy = {
     inputs: int;
@@ -105,14 +106,39 @@ let assign_state_values mm =
     in
     generate_value_tuples determine_state_order
 
+let mealy_to_truth_tables mm ord =
+    let (output_rows, transition_rows) = 
+        List.fold_left 
+        (fun (output, transition) -> fun ((s,m),(n,t)) -> 
+            let current_assignment = List.assoc s ord in
+            let next_assignment = List.assoc t ord in
+            let inputs = current_assignment @ m in
+            ((inputs, n) :: output, (inputs, next_assignment) :: transition)
+        )
+        ([],[])
+        mm.transition_function
+    in
+    let inputs = mm.inputs + mm.states in
+    ({
+        inputs = inputs;
+        outputs = mm.outputs;
+        table = output_rows
+    },
+    {
+        inputs = inputs;
+        outputs = mm.states;
+        table = transition_rows
+    })
+    
+
 (* Printer *)
 
-let mealy_to_string mm = 
+let mealy_to_string belnap mm = 
     let each_state = List.map 
         (fun ((s, m), (n, t)) -> 
             let current = string_of_int s in
-            let input = value_list_to_string m in
-            let output = value_list_to_string n in
+            let input = value_list_to_string belnap m in
+            let output = value_list_to_string belnap n in
             let next = string_of_int t in
             "s" ^ current ^ " | " ^
             input ^ " || " ^

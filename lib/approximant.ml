@@ -77,7 +77,7 @@ let rec depends_on ap hist =
 
 let func_to_string id n af =
     let rec func_to_string' = function
-    | Value v -> value_to_string v
+    | Value v -> belnap_value_to_string v
     | Input (i, j) -> "σ(" ^ (string_of_int (n-i)) ^ ")[" ^ (string_of_int j) ^ "]"
     | Apply (g, f) -> 
         let arguments = (List.fold_left (fun acc -> fun cur -> acc ^ ", " ^ func_to_string' cur) (func_to_string' (List.hd f)) (List.tl f)) in 
@@ -141,6 +141,8 @@ let partial_eval_gate g xs = match g with
 | Or -> partial_eval_or (List.nth xs 0) (List.nth xs 1)
 | Not -> partial_eval_not (List.nth xs 0)
 | Join -> partial_eval_join (List.nth xs 0) (List.nth xs 1)
+| AndN _ -> List.fold_left partial_eval_and (Value True) xs
+| OrN _ -> List.fold_left partial_eval_or (Value False) xs
 
 let partial_eval a init n ap =
     let rec partial_eval' = function

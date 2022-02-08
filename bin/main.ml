@@ -3,6 +3,7 @@ open Circuit_streams.Approximant
 open Circuit_streams.Streams
 open Circuit_streams.Mealy
 open Circuit_streams.Dot
+open Circuit_streams.Function
 
 (* Example *)
 
@@ -67,4 +68,9 @@ let h = {
 let () = 
     let mealy = stream_to_mealy g in
     let ord = assign_state_values mealy in
-    write_assigned_mealy_dot_to_file mealy ord "mealy.dot";
+    write_assigned_mealy_dot_to_file true mealy ord "mealy.dot";
+    let (_,transition) = mealy_to_truth_tables mealy ord in
+    let (new_table,_) = right_weight_truth_table transition in
+    print_endline (truth_table_to_string true new_table);
+    (* print_endline "\n";
+    print_endline (truth_table_to_string false transition) *)

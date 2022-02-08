@@ -2,14 +2,14 @@ open Mealy
 open Belnap
 open Helpers
 
-let generate_dot_from_mealy mm assg = 
+let generate_dot_from_mealy belnap mm assg = 
     let graph_options = [("rankdir", "LR");("ranksep", "1.5")] in 
     let node_options = [("shape", "circle");("width","0.5")] in
     let edge_options = [("fontsize", "10");("arrowsize", "0.25")] in
     let get_node_text s = 
         match assg with 
             | None -> "s" ^ string_of_int s
-            | Some assg -> value_list_to_string (List.assoc s assg)
+            | Some assg -> value_list_to_string belnap (List.assoc s assg)
     in
     let node_strings = 
         ((get_node_text 0) ^ "[shape=doublecircle]") ::    
@@ -17,7 +17,7 @@ let generate_dot_from_mealy mm assg =
     let edge_strings = 
         List.map 
             (fun ((s, m), (n, t)) -> 
-                (get_node_text s) ^ " -> " ^ (get_node_text t) ^ "[label=\"  " ^ value_list_to_string m ^ " | " ^ value_list_to_string n ^ "  \"]"
+                (get_node_text s) ^ " -> " ^ (get_node_text t) ^ "[label=\"  " ^ value_list_to_string belnap m ^ " | " ^ value_list_to_string belnap n ^ "  \"]"
                 )
       mm.transition_function
     in
@@ -59,10 +59,10 @@ let write_to_file f s =
         Printf.fprintf oc "%s" s;
         close_out oc
 
-let write_dot_to_file mm f = 
-    let dot = generate_dot_from_mealy mm None in
+let write_dot_to_file belnap mm f = 
+    let dot = generate_dot_from_mealy belnap mm None in
     write_to_file f dot
 
-let write_assigned_mealy_dot_to_file mm ord f = 
-    let dot = generate_dot_from_mealy mm (Some ord) in
+let write_assigned_mealy_dot_to_file belnap mm ord f = 
+    let dot = generate_dot_from_mealy belnap mm (Some ord) in
     write_to_file f dot
