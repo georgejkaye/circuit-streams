@@ -1,4 +1,4 @@
-open Belnap
+open Values
 open Approximant
 open Helpers
 
@@ -63,7 +63,7 @@ let stream_derivative cs a =
     let new_prefix_evaled = evalf 1 new_prefix in
     let new_period_evaled = evalf ((List.length new_prefix) + 1) (cs.period_behvaiour) in
     {
-        name = cs.name ^ "{" ^ (value_list_to_string true a) ^ "}";
+        name = cs.name ^ "{" ^ (belnap_value_list_to_string a) ^ "}";
         inputs = cs.inputs;
         outputs = cs.outputs;
         prefix_behaviour = new_prefix_evaled;

@@ -1,4 +1,4 @@
-open Belnap
+open Values
 open Streams
 open Helpers
 open Order
@@ -10,7 +10,7 @@ type mealy = {
     states: int;
     initial: int;
     (* T : S -> M -> S * N *)
-    transition_function: ((int * value list) * (value list * int)) list;
+    transition_function: ((int * belnap_value list) * (belnap_value list * int)) list;
 }
 
 let stream_to_mealy cs =
@@ -70,7 +70,7 @@ let stream_to_mealy cs =
         ) transition_fn in
     {
         inputs = cs.inputs;
-        outputs = cs.inputs;
+        outputs = cs.outputs;
         initial = 0;
         states = List.length mealy_data;
         transition_function = updated_transition_fn 
@@ -100,45 +100,51 @@ let assign_state_values mm =
     let generate_value_tuples order =
         let generate_single_tuple n = 
             List.map 
-                (fun s -> if (po_lte order s n) then Top else Bot)
+                (fun s -> if (po_lte order s n) then Both else Non)
                 (nats mm.states)
         in List.map (fun i -> (i, generate_single_tuple i)) (nats mm.states)
     in
     generate_value_tuples determine_state_order
 
 let mealy_to_truth_tables mm ord =
-    let (output_rows, transition_rows) = 
+    let (outputs_list, transition_list) = 
         List.fold_left 
-        (fun (output, transition) -> fun ((s,m),(n,t)) -> 
-            let current_assignment = List.assoc s ord in
-            let next_assignment = List.assoc t ord in
-            let inputs = current_assignment @ m in
-            ((inputs, n) :: output, (inputs, next_assignment) :: transition)
+        (fun (outputs_list, transition_list) -> 
+            fun ((s,m),(n,t)) -> 
+                let current_assignment = List.assoc s ord in
+                let next_assignment = List.assoc t ord in
+                let inputs = Array.of_list (current_assignment @ m) in
+                let outputs = Array.of_list n in
+                let transitions = Array.of_list next_assignment in
+                ((inputs, outputs) :: outputs_list, (inputs, transitions) :: transition_list)
         )
-        ([],[])
+        ([], [])
         mm.transition_function
     in
     let inputs = mm.inputs + mm.states in
+    let rows = List.length mm.transition_function in
     ({
         inputs = inputs;
         outputs = mm.outputs;
-        table = output_rows
+        rows = rows;
+        matrix = Array.of_list outputs_list;
     },
     {
         inputs = inputs;
         outputs = mm.states;
-        table = transition_rows
+        rows = rows;
+        matrix = Array.of_list transition_list;
     })
     
 
 (* Printer *)
 
-let mealy_to_string belnap mm = 
+let mealy_to_string mm = 
     let each_state = List.map 
         (fun ((s, m), (n, t)) -> 
             let current = string_of_int s in
-            let input = value_list_to_string belnap m in
-            let output = value_list_to_string belnap n in
+            let input = belnap_value_list_to_string m in
+            let output = belnap_value_list_to_string n in
             let next = string_of_int t in
             "s" ^ current ^ " | " ^
             input ^ " || " ^

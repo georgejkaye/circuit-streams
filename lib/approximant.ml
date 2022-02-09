@@ -1,9 +1,9 @@
-open Belnap
+open Values
 open Helpers
 
 (* TODO consider if we want to use -1,-2, etc for defining things *)
 type approximant_func =
-    | Value of value
+    | Value of belnap_value
     (* For input sigma, Input(i,j) is the jth element of the ith most recent
         stream element, i.e. if this is f(sigma)(i), Input(0, j) = sigma(i)(j),
         Input(1, j) = sigma(i-1)(j) and so on 
@@ -97,52 +97,52 @@ let eval_func hist ap xs =
     in List.map eval_func' ap.func
 
 let partial_eval_join x y = match (x, y) with
-    | (Value Bot, y) -> y
-    | (x, Value Bot) -> x
-    | (Value Top, _) -> Value Top
-    | (_, Value Top) -> Value Top
-    | (Value True, Value False) -> Value Top
-    | (Value False, Value True) -> Value Top
-    | (Value True, Value True) -> Value True
-    | (Value False, Value False) -> Value False
+    | (Value Non, y) -> y
+    | (x, Value Non) -> x
+    | (Value Both, _) -> Value Both
+    | (_, Value Both) -> Value Both
+    | (Value High, Value Low) -> Value Both
+    | (Value Low, Value High) -> Value Both
+    | (Value High, Value High) -> Value High
+    | (Value Low, Value Low) -> Value Low
     | (_, _) -> Apply (Join, [x ; y])
 
 let partial_eval_or x y = match (x, y) with
-    | (Value Bot, Value Bot) -> Value Bot
-    | (Value False, y) -> y
-    | (x, Value False) -> x
-    | (Value True, _) -> Value True
-    | (_, Value True) -> Value True
-    | (Value Top, Value Top) -> Value Top
-    | (Value Bot, Value Top) -> Value True
-    | (Value Top, Value Bot) -> Value True
+    | (Value Non, Value Non) -> Value Non
+    | (Value Low, y) -> y
+    | (x, Value Low) -> x
+    | (Value High, _) -> Value High
+    | (_, Value High) -> Value High
+    | (Value Both, Value Both) -> Value Both
+    | (Value Non, Value Both) -> Value High
+    | (Value Both, Value Non) -> Value High
     | (_, _) -> Apply (Or, [x ; y])
 
 let partial_eval_and x y = match (x, y) with
-    | (Value Bot, Value Bot) -> Value Bot
-    | (Value True, y) -> y
-    | (x, Value True) -> x
-    | (Value False, _) -> Value False
-    | (_, Value False) -> Value False 
-    | (Value Top, Value Top) -> Value Top
-    | (Value Top, Value Bot) -> Value False
-    | (Value Bot, Value Top) -> Value False
+    | (Value Non, Value Non) -> Value Non
+    | (Value High, y) -> y
+    | (x, Value High) -> x
+    | (Value Low, _) -> Value Low
+    | (_, Value Low) -> Value Low 
+    | (Value Both, Value Both) -> Value Both
+    | (Value Both, Value Non) -> Value Low
+    | (Value Non, Value Both) -> Value Low
     | (_, _) -> Apply (And, [x ; y])
 
 let partial_eval_not x = match x with
-    | Value Bot -> Value Bot
-    | Value True -> Value False
-    | Value False -> Value True
-    | Value Top -> Value Top
+    | Value Non -> Value Non
+    | Value High -> Value Low
+    | Value Low -> Value High
+    | Value Both -> Value Both
     | _ -> Apply (Not, [x])
 
-let partial_eval_gate g xs = match g with
+let partial_eval_gate (g : gate) xs = match g with
 | And -> partial_eval_and (List.nth xs 0) (List.nth xs 1)
 | Or -> partial_eval_or (List.nth xs 0) (List.nth xs 1)
 | Not -> partial_eval_not (List.nth xs 0)
 | Join -> partial_eval_join (List.nth xs 0) (List.nth xs 1)
-| AndN _ -> List.fold_left partial_eval_and (Value True) xs
-| OrN _ -> List.fold_left partial_eval_or (Value False) xs
+| AndN _ -> List.fold_left partial_eval_and (Value High) xs
+| OrN _ -> List.fold_left partial_eval_or (Value Low) xs
 
 let partial_eval a init n ap =
     let rec partial_eval' = function

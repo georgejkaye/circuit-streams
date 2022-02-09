@@ -54,5 +54,3 @@ let remove_duplicates xs =
             []
             xs
     )
-
-
