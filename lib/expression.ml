@@ -42,17 +42,19 @@ let substitute_list p = List.fold_left (fun acc -> fun cur -> substitute acc cur
   Get an expression in terms of only None (00) and High (01)
   i.e. the content is on the 'right'
 
-  Returns (t,v) where
-    - t is the *translation* from the encoded value to the original 
-        value in Belnap logic
-    - v is the (classical) value that the original (belnap) value 
-        was encoded as
+  We can obtain this for a value x by computing x OR None
 *)
 let encode_right_weight = function
-    | Non -> (False, Var 0)
-    | High -> (True, Var 0)
-    | Low -> (True, Not (Var 0))
-    | Both -> (True, Join ([Var 0 ; Not (Constant High)]))
+    | Non -> False
+    | High -> True
+    | Low -> False
+    | Both -> True
+
+let encode_left_heavy = function
+    | Non -> (False, Join ([Var 0 ; Constant False]))
+    | High -> (False, Not (Var 0))
+    | Low -> (False, Var 0)
+    | Both -> (True, Var 0)
 
 let decode_right_weight ev = 
     let (translation, encoding) = ev in

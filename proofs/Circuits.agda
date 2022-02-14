@@ -3,6 +3,7 @@ open import Data.List using (List ; _∷_ ; [] ; [_] ; length ; any ; foldl ; ma
 open import Data.Sum using () renaming (_⊎_ to _+_)
 open import Data.Product using (_×_ ; _,_) renaming (proj₁ to fst ; proj₂ to snd)
 open import Data.Bool using (if_then_else_ ; true ; false)
+open import Data.Fin using (Fin) renaming (zero to fzero ; suc to fsucc)
 open import Relation.Binary.PropositionalEquality
 
 module Circuits where
@@ -11,9 +12,9 @@ module Circuits where
 ≡≤ z≤n refl = z≤n
 ≡≤ (s≤s p) refl = s≤s p
 
-nth : {A : Set} → (n : ℕ) (xs : List A) → n < length xs → A
-nth zero (x ∷ xs) p = x
-nth (succ n) (x ∷ xs) (s≤s p) = nth n xs p 
+nth : {A : Set} → (xs : List A) (n : Fin (length xs)) → A
+nth (x ∷ xs) fzero = x
+nth (x ∷ xs) (fsucc n) = nth xs n
 
 succ≡ : {a b : ℕ} → a ≡ b → succ a ≡ succ b
 succ≡ refl = refl 

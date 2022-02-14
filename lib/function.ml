@@ -25,41 +25,36 @@ type 'a translation_table = {
     into the original belnap value later.
 *)
 let right_weight_truth_table tt = 
-    let (weighteds, translations) = 
+    let weighteds = 
         List.fold_left 
-            (fun (weighteds, translations) -> fun i ->
+            (fun weighteds -> fun i ->
                 let row = tt.matrix.(i) in
                 let translate_array arr n =
-                    let (weighted, translation) = 
+                    let weighted = 
                         List.fold_left
-                            (fun (weighted, translation) -> fun i ->
+                            (fun weighted -> fun i ->
                                 let cur = arr.(i) in
-                                let (current_weighted, current_translation) = encode_right_weight cur in
-                                (current_weighted :: weighted, current_translation :: translation)
+                                let current_weighted = encode_right_weight cur in
+                                current_weighted :: weighted
                             )
-                            ([],[])
+                            []
                             (nats n)
                     in
-                    (Array.of_list (List.rev weighted), Array.of_list (List.rev translation))
+                    Array.of_list (List.rev weighted)
                 in
-                let (input_weighted, input_translation) = translate_array (fst row) tt.inputs in
-                let (output_weighted, output_translation) = translate_array (snd row) tt.outputs in
-                ((input_weighted, output_weighted) :: weighteds, (input_translation, output_translation) :: translations)
+                let input_weighted = translate_array (fst row) tt.inputs in
+                let output_weighted = translate_array (snd row) tt.outputs in
+                (input_weighted, output_weighted) :: weighteds
             )
-            ([],[])
+            []
             (nats tt.rows)
     in
-    (
-        {
-            inputs = tt.inputs;
-            outputs = tt.outputs;
-            rows = tt.rows;
-            matrix = Array.of_list (List.rev weighteds)
-        },
-        {
-            translations = Array.of_list (List.rev translations)
-        }
-    )
+    {
+        inputs = tt.inputs;
+        outputs = tt.outputs;
+        rows = tt.rows;
+        matrix = Array.of_list (List.rev weighteds)
+    }
 
 (**
     Convert a classical truth table into a series of dnfs, one for each
@@ -83,10 +78,12 @@ let convert_classical_table_to_dnf tt =
                 Not conjuncts
         in
         Or(
-            List.map
-                (fun j -> convert_row_to_cnf (tt.matrix.(j))) 
+            List.rev (List.fold_left
+                (fun acc -> fun j ->
+                    if (snd (tt.matrix.(j))).(i) == True then convert_row_to_cnf (tt.matrix.(j)) :: acc else acc)
+                [] 
                 (nats tt.rows)
-            )
+            ))
     in 
     List.map convert_classical_table_to_dnf_column (nats tt.outputs)
 

@@ -73,9 +73,9 @@ let () =
     write_assigned_mealy_dot_to_file mealy ord "mealy.dot";
     let (output,_) = mealy_to_truth_tables mealy ord in
     print_endline (belnap_truth_table_to_string output);
-    let (new_table,translation) = right_weight_truth_table output in
+    let new_table = right_weight_truth_table output in
     print_endline (classical_truth_table_to_string new_table);
-    print_endline (
+    (* print_endline (
     (list_to_string 
         (Array.to_list translation.translations) "" "" "\n" 
         (fun row -> 
@@ -86,15 +86,15 @@ let () =
             list_to_string (Array.to_list (snd row)) "" "" " __ " belnap_expression_to_string 
         )
     )
-    );
+    ); *)
     let dnfs = convert_classical_table_to_dnf new_table in
-    (* print_endline (list_to_string dnfs "" "" "\n" belnap_expression_to_string); *)
-    (* print_endline ""; *)
-    let decoded_dnfs = decode_right_weighted_dnfs dnfs translation in
+    print_endline (list_to_string dnfs "" "" "\n" belnap_expression_to_string);
+    print_endline "";
+    (* let decoded_dnfs = decode_right_weighted_dnfs dnfs translation in
     print_endline (list_to_string decoded_dnfs "" "" "\n" belnap_expression_to_string);
     let check_inputs = [Both;Non;Non;Non;Non;Non;High] in
     let check = List.map (eval_belnap_logical_expression check_inputs) decoded_dnfs in
-    print_endline (belnap_value_list_to_string check)
+    print_endline (belnap_value_list_to_string check) *)
     
     (* print_endline "\n";
     print_endline (truth_table_to_string false transition) *)
