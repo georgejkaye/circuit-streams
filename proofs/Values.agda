@@ -145,3 +145,6 @@ exp-𝓻 (x and y) = exp-𝓻 x and exp-𝓻 y
 exp-𝓻 (x or y) = exp-𝓻 x or exp-𝓻 y
 exp-𝓻 (not x) = not (exp-𝓻 x)
 exp-𝓻 (x join y) = (exp-𝓻 x) join (exp-𝓻 y)
+
+empty-env : {A : Set} → Fin 0 → A
+empty-env ()
