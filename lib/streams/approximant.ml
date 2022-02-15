@@ -1,5 +1,6 @@
-open Values
-open Helpers
+open Logic.Values
+
+open Core.Helpers
 
 (* TODO consider if we want to use -1,-2, etc for defining things *)
 type approximant_func =

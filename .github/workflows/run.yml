@@ -16,7 +16,7 @@ jobs:
       - name: Install opam dependencies
         run: opam install . --deps-only --with-test
       - name: Build and execute the program
-        run: opam exec -- dune exec bin/main.exe
+        run: opam exec -- dune exec bin/streams/main.exe
       - name: Setup Graphviz
         uses: ts-graphviz/setup-graphviz@v1
       - name: Generate the dot

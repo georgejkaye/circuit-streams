@@ -1,8 +1,8 @@
-open Values
-open Streams
-open Helpers
-open Order
-open Function
+open Logic.Values
+open Functions
+open Core.Helpers
+open Logic.Order
+open Table
 
 type mealy = {
     inputs: int;

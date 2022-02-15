@@ -1,0 +1,3 @@
+(library
+ (name streams)
+ (libraries logic))

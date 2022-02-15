@@ -1,5 +1,5 @@
-open Values
-open Helpers
+open Logic.Values
+open Core.Helpers
 open Expression
 
 type 'a truth_table = {

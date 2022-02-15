@@ -1,4 +1,5 @@
-open Helpers
+open Core.Helpers
+
 open Order
 
 (* The classical set of values, True and False *)

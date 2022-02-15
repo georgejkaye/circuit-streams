@@ -1,11 +1,11 @@
 open Mealy
-open Values
-open Helpers
+open Logic.Values
+open Core.Helpers
 
 let generate_dot_from_mealy mm assg   = 
     let graph_options = [("rankdir", "LR");("ranksep", "1.5")] in 
     let node_options = [("shape", "circle");("width","0.5")] in
-    let edge_options = [("fontsize", "10");("arrowsize", "0.25")] in
+    let edge_options = [("fontsize", "10");("arrowsize", "1")] in
     let get_node_text s = 
         match assg with 
             | None -> "s" ^ string_of_int s

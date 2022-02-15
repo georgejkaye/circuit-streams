@@ -1,5 +1,5 @@
-open Values
-open Helpers
+open Logic.Values
+open Core.Helpers
 
 (* Weighting on one side of the classical interpretation *)
 

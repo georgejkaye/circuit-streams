@@ -1,6 +1,6 @@
-open Values
+open Core.Helpers
+open Logic.Values
 open Approximant
-open Helpers
 
 (**  
     Causal stream functions are defined for each tick i by using
