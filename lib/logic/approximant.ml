@@ -1,6 +1,6 @@
-open Logic.Values
-
 open Core.Helpers
+
+open Values
 
 (* TODO consider if we want to use -1,-2, etc for defining things *)
 type approximant_func =
@@ -141,6 +141,8 @@ let partial_eval_gate (g : gate) xs = match g with
 | And -> partial_eval_and (List.nth xs 0) (List.nth xs 1)
 | Or -> partial_eval_or (List.nth xs 0) (List.nth xs 1)
 | Not -> partial_eval_not (List.nth xs 0)
+| Nor -> partial_eval_not (partial_eval_or (List.nth xs 0) (List.nth xs 1))
+| Nand -> partial_eval_not (partial_eval_and (List.nth xs 0) (List.nth xs 1))
 | Join -> partial_eval_join (List.nth xs 0) (List.nth xs 1)
 | AndN _ -> List.fold_left partial_eval_and (Value High) xs
 | OrN _ -> List.fold_left partial_eval_or (Value Low) xs

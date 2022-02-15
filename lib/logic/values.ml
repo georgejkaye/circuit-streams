@@ -104,6 +104,8 @@ type gate =
     | Or
     | Not
     | Join
+    | Nor
+    | Nand
     | AndN of int
     | OrN of int
 
@@ -111,6 +113,8 @@ let gate_to_string = function
 | And -> "AND"
 | Or  -> "OR"
 | Not -> "NOT"
+| Nor -> "NOR"
+| Nand -> "NAND"
 | Join -> "⊔"
 | AndN n -> "AND_" ^ string_of_int n
 | OrN n -> "OR_" ^ string_of_int n
@@ -120,6 +124,8 @@ let gate_inputs = function
 | Or -> 2
 | Not -> 1
 | Join -> 2
+| Nor -> 2
+| Nand -> 2
 | AndN n -> n
 | OrN n -> n
 
@@ -168,6 +174,8 @@ let eval_gate g xs = match g with
 | And -> and_b (List.nth xs 0) (List.nth xs 1)
 | Or  -> or_b (List.nth xs 0) (List.nth xs 1)
 | Not -> not_b (List.nth xs 0)
+| Nor -> not_b (or_b (List.nth xs 0) (List.nth xs 1))
+| Nand -> not_b (and_b (List.nth xs 0) (List.nth xs 1))
 | Join -> join_b (List.nth xs 0) (List.nth xs 1)
 | AndN _ -> eval_andn xs
 | OrN _ -> eval_orn xs

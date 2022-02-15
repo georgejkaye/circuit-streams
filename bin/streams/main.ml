@@ -1,10 +1,10 @@
 
 open Logic.Values
+open Logic.Approximant
 
 open Streams.Functions
 open Streams.Mealy
 open Streams.Dot
-open Streams.Approximant
 
 (* Example *)
 
