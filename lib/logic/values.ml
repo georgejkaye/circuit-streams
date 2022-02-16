@@ -196,11 +196,29 @@ let belnap_to_classical_list vs =
             (List.map belnap_to_classical vs)
         )
 
-(* Printers *)
+let list_of_inputs_to_input_list vss = 
+    let length = get_max_length vss in
+    List.init
+        length
+        (fun i ->
+            List.rev (List.fold_left
+                (fun acc -> fun cur -> 
+                    let v = match (List.nth cur i) with
+                        | v -> v
+                        | exception (Failure _) -> Non
+                in 
+                    v :: acc
+                )
+            []
+            vss
+            )
+        )
 
+(* Printers *)
 
 let value_list_to_string to_string vs = list_to_string vs "" "" "" to_string
 let value_list_list_to_string to_string vss = list_to_string vss "[" "]" " ; " (value_list_to_string to_string)
 
 let belnap_value_list_to_string = value_list_to_string belnap_value_to_string
+let belnap_value_list_list_to_string = value_list_list_to_string belnap_value_to_string
 let classical_value_list_to_string = value_list_to_string classical_value_to_string

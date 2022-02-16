@@ -25,6 +25,9 @@ let list_to_string_def xs to_string = list_to_string xs "[" "]" ";" to_string
 let print_list xs lbracket rbracket delimiter to_string = print_endline (list_to_string xs lbracket rbracket delimiter to_string)
 let print_list_def xs to_string = print_list xs "[" "]" ";" to_string
 
+let get_max_length vss = 
+    List.fold_left (fun acc -> fun cur -> max acc (List.length cur)) 0 vss
+
 let rec max_element = function
 | [] -> failwith "[max] empty list"
 | [x] -> x
