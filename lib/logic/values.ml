@@ -223,6 +223,11 @@ let make_waveform xs =
         []
         xs 
     
+let make_clock n k =
+    List.init (n*(k*2)) (fun i -> 
+        if i mod (2 * n) < n then High else Low)
+
+
 (* Printers *)
 
 let value_list_to_string to_string vs = list_to_string vs "" "" "" to_string
