@@ -2,10 +2,10 @@ open Circuit
 
 let sr_blocks a b c d = 
     let rec f_block = {
-      inputs = [(Input 0, a); (Block g_block, b)];
+      ports = [(Input 0, a); (Block g_block, b)];
       gate = Nor;
     } and g_block = {
-      inputs = [(Block f_block, c) ; (Input 1, d)];
+      ports = [(Block f_block, c) ; (Input 1, d)];
       gate = Nor;
     } in
     (f_block, g_block)

@@ -214,6 +214,15 @@ let list_of_inputs_to_input_list vss =
             )
         )
 
+let make_waveform xs = 
+    List.fold_left
+        (fun acc -> fun (v, n) ->
+            let values = List.init n (fun _ -> v) in
+            acc @ values 
+        )
+        []
+        xs 
+    
 (* Printers *)
 
 let value_list_to_string to_string vs = list_to_string vs "" "" "" to_string

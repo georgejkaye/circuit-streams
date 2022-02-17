@@ -2,7 +2,7 @@ open Logic.Values
 
 type block = {
     (* Each input to the gate is delayed by some n *)
-    inputs: (input_type * int) list;
+    ports: (input_type * int) list;
     gate: gate;
 } and input_type = 
     | Block of block
@@ -18,7 +18,7 @@ let rec evaluate_block i vss b =
                     if i - d >= List.length vss then Non else 
                     List.nth (List.nth vss (i - d)) j
             )
-            (b.inputs)
+            (b.ports)
     in
     eval_gate b.gate inputs
 
