@@ -1,4 +1,4 @@
-open Core.Helpers
+open Helpers.Help
 
 open Values
 
@@ -146,6 +146,8 @@ let partial_eval_gate (g : gate) xs = match g with
 | Join -> partial_eval_join (List.nth xs 0) (List.nth xs 1)
 | AndN _ -> List.fold_left partial_eval_and (Value High) xs
 | OrN _ -> List.fold_left partial_eval_or (Value Low) xs
+| NandN _ -> partial_eval_not (List.fold_left partial_eval_and (Value High) xs)
+| NorN _ -> partial_eval_not (List.fold_left partial_eval_or (Value Low) xs)
 
 let partial_eval a init n ap =
     let rec partial_eval' = function

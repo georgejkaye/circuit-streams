@@ -1,4 +1,4 @@
-open Core.Helpers
+open Helpers.Help
 
 open Order
 
@@ -108,6 +108,8 @@ type gate =
     | Nand
     | AndN of int
     | OrN of int
+    | NandN of int
+    | NorN of int
 
 let gate_to_string = function
 | And -> "AND"
@@ -118,6 +120,8 @@ let gate_to_string = function
 | Join -> "⊔"
 | AndN n -> "AND_" ^ string_of_int n
 | OrN n -> "OR_" ^ string_of_int n
+| NandN n -> "NAND_" ^ string_of_int n
+| NorN n -> "NOR_" ^ string_of_int n
 
 let gate_inputs = function
 | And -> 2
@@ -128,6 +132,8 @@ let gate_inputs = function
 | Nand -> 2
 | AndN n -> n
 | OrN n -> n
+| NandN n -> n
+| NorN n -> n
 
 let and_b x y = match (x, y) with
 | (High, x) -> x
@@ -166,9 +172,13 @@ let join_b x y = match (x, y) with
 | (_, High) -> High
 | (Non, Non) -> Non
 
-let eval_andn = List.fold_left and_b High
-let eval_orn = List.fold_left or_b Low
+let andn_b = List.fold_left and_b High
+let orn_b = List.fold_left or_b Low
 let eval_joinn = List.fold_left join_b Non
+
+let nandn_b xs = not_b (andn_b xs)
+let norn_b xs = not_b (orn_b xs)
+
 
 let eval_gate g xs = match g with
 | And -> and_b (List.nth xs 0) (List.nth xs 1)
@@ -177,8 +187,10 @@ let eval_gate g xs = match g with
 | Nor -> not_b (or_b (List.nth xs 0) (List.nth xs 1))
 | Nand -> not_b (and_b (List.nth xs 0) (List.nth xs 1))
 | Join -> join_b (List.nth xs 0) (List.nth xs 1)
-| AndN _ -> eval_andn xs
-| OrN _ -> eval_orn xs
+| AndN _ -> andn_b xs
+| OrN _ -> orn_b xs
+| NandN _ -> nandn_b xs
+| NorN _ -> norn_b xs
 
 (* Interpretation as classical logic *)
 
@@ -214,6 +226,10 @@ let list_of_inputs_to_input_list vss =
             )
         )
 
+(**
+    Given a list of pairs (value v, int i), create a waveform that
+    produces each value v in order for i ticks.
+*)
 let make_waveform xs = 
     List.fold_left
         (fun acc -> fun (v, n) ->
@@ -223,6 +239,10 @@ let make_waveform xs =
         []
         xs 
     
+(**
+    Create a clock waveform that alternates high and low for n ticks at a time,
+    for k iterations
+*)
 let make_clock n k =
     List.init (n*(k*2)) (fun i -> 
         if i mod (2 * n) < n then High else Low)

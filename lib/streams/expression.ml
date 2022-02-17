@@ -1,5 +1,5 @@
 open Logic.Values
-open Core.Helpers
+open Helpers.Help
 
 (* Weighting on one side of the classical interpretation *)
 
@@ -19,10 +19,10 @@ let rec eval_belnap_logical_expression xs = function
         not_b exp
     | And exps -> 
         let exps = List.map (eval_belnap_logical_expression xs) exps in
-        eval_andn exps
+        andn_b exps
     | Or exps ->
         let exps = List.map (eval_belnap_logical_expression xs) exps in
-        eval_orn exps
+        orn_b exps
     | Join exps ->
         let exps = List.map (eval_belnap_logical_expression xs) exps in
         eval_joinn exps

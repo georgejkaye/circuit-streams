@@ -1,4 +1,4 @@
-open Core.Helpers
+open Helpers.Help
 
 type 'a partial_order = {
     elements: 'a list;

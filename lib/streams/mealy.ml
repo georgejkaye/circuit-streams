@@ -1,6 +1,6 @@
 open Logic.Values
 open Functions
-open Core.Helpers
+open Helpers.Help
 open Logic.Order
 open Table
 

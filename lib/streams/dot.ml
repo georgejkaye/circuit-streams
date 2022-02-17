@@ -1,6 +1,6 @@
 open Mealy
 open Logic.Values
-open Core.Helpers
+open Helpers.Help
 
 let generate_dot_from_mealy mm assg   = 
     let graph_options = [("rankdir", "LR");("ranksep", "1.5")] in 

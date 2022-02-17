@@ -1,4 +1,4 @@
-open Core.Helpers
+open Helpers.Help
 open Logic.Values
 open Logic.Approximant
 
