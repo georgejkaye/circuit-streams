@@ -10,36 +10,55 @@ type block = {
     | Block of block
     | Input of int
 
-let rec evaluate_block i vss b =
-    print_endline ("eval block " ^ (string_of_int b.id) ^ " at " ^ (string_of_int i));
+let rec evaluate_block lookup i vss b =
     let inputs = 
-        List.map 
-            (fun (it, d) -> 
-                if i < d then Non else match it with    
-                | Block b -> evaluate_block (i - d) vss b
-                | Input j -> 
-                    if i - d >= List.length vss then Non else 
-                    List.nth (List.nth vss (i - d)) j
+        List.rev (snd 
+            (List.fold_left 
+                (fun (lookup, acc) -> fun (it, d) -> 
+                    if i < d then (lookup, Non :: acc) else 
+                        match it with    
+                        | Block b -> 
+                            let (lookup, v) = lookup_block lookup (i - d) vss b in 
+                            (lookup, v :: acc)
+                        | Input j -> 
+                            let v = if i - d >= List.length vss then Non else 
+                            List.nth (List.nth vss (i - d)) j
+                            in (lookup, v :: acc)
+                )
+                (lookup, [])
+                (b.ports)
             )
-            (b.ports)
+        )
     in
     eval_gate b.gate inputs
+and lookup_block lookup i vss b = 
+    if i < 0 then (lookup, Non) else
+        match lookup.(b.id).(i) with 
+            | Some v -> (lookup, v)
+            | None -> 
+                let evaled = evaluate_block lookup i vss b in
+                lookup.(b.id).(i) <- Some evaled;
+                (lookup, evaled)
 
 type circuits = {
-  input_names: string list;
-  output_names: string list;
-  outputs: (input_type * int) list
+    gates: int;
+    input_names: string list;
+    output_names: string list;
+    outputs: (input_type * int) list
 }
 
 let evaluate_circuit i vss c = 
-    print_endline ("eval tick " ^ (string_of_int i));
-    List.map
-        (fun (b,d) ->
+    let lookup = Array.make_matrix c.gates i None in
+    List.rev (snd (List.fold_left
+        (fun (lookup, acc) ->
+            fun (b, d) ->
             match b with 
-                | Block b -> evaluate_block (i-d) vss b
-                | Input j -> List.nth (List.nth vss (i-d)) j
+                | Block b -> let (lookup, value) = lookup_block lookup (i-d) vss b in (lookup, value :: acc)
+                | Input j -> (lookup, (List.nth (List.nth vss (i-d)) j) :: acc)
         )
+        (lookup, [])
         c.outputs
+    ))
 
 let simulate_circuit n inputs c =
     List.map

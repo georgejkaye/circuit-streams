@@ -12,13 +12,14 @@ let sr_latch a b c d e f =
     } 
     in
     {
+        gates = 2;
         input_names = ["R" ; "S"];
         output_names = ["Q" ; "Q'"];
         outputs = [
             (Block f_block, e);
             (Block g_block, f)
         ]
-  }
+    }
 
 
   let d_flipflop a b c d e f g h i j k = 
@@ -49,6 +50,7 @@ let sr_latch a b c d e f =
     }
     in
     {
+        gates = 5;
         input_names = ["D" ; "Clk"];
         output_names = ["Q" ; "Q'"];
         outputs = [
@@ -60,32 +62,33 @@ let sr_latch a b c d e f =
 (** https://en.wikipedia.org/wiki/Flip-flop_(electronics)#/media/File:Edge_triggered_D_flip_flop.svg *)
 let positive_edge_d_flip_flop a b c d e f g h i j k l m n o = 
     let rec nand0 = {
-        id = 1;
+        id = 0;
         gate = Nand;
         ports = [(Block nand3, a); (Block nand1, b)];
     } and nand1 = {
-        id = 2;
+        id = 1;
         gate = Nand;
         ports = [(Block nand0, c); (Input 0, d)]
     } and nand2 = {
-        id = 3;
+        id = 2;
         gate = NandN 3;
         ports = [(Block nand1, e); (Input 0, f); (Block nand3, g)]
     } and nand3 = {
-        id = 4;
+        id = 3;
         gate = Nand;
         ports = [(Block nand2, h); (Input 1, i)]
     } and nand4 = {
-        id = 5;
+        id = 4;
         gate = Nand;
         ports = [(Block nand1, j) ; (Block nand5, k)]
     } and nand5 = {
-        id = 6;
+        id = 5;
         gate = Nand;
         ports = [(Block nand4, l) ; (Block nand2, m)]
     }
     in
     {
+        gates = 6;
         input_names = ["Clock";"Data"] ;
         output_names = ["Q"; "Q'"] ;
         outputs = [(Block nand4, n) ; (Block nand5, o)]
