@@ -31,6 +31,11 @@ let gates c =
     in
     List.length (gates' [] c)
 
+let get_output_port c i = 
+    let (output, _) = c.outputs.(i) in
+    output
+
+
 let rec set_circuit_inputs c ins = 
     let rec set_port_inputs = function
         | Block b -> Block (set_block_inputs b)

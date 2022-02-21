@@ -1,6 +1,8 @@
-open Mealy
+open Streams.Mealy
 open Logic.Values
 open Helpers.Help
+
+open Core
 
 let generate_dot_from_mealy mm assg   = 
     let graph_options = [("rankdir", "LR");("ranksep", "1.5")] in 
@@ -28,26 +30,6 @@ let generate_dot_from_mealy mm assg   =
             )
       mm.transition_function
     in
-    let create_full_string xs = 
-        List.fold_left (
-            fun acc -> fun cur -> acc ^ "\n\t" ^ cur)
-            ("\t" ^ List.hd xs)
-            (List.tl xs)
-    in 
-    let create_graph_options_string xs =
-        "\t" ^ 
-        List.fold_left 
-            (fun acc -> fun (property, value) -> acc ^ "\n\t" ^ property ^ "=" ^ value)
-            (fst (List.hd xs) ^ "=" ^ snd (List.hd xs))
-            (List.tl xs)
-    in
-    let create_options_string selector xs = 
-        "\t" ^ List.fold_left (
-            fun acc -> fun (property, value) -> acc ^ ", " ^ property ^ "=" ^ value
-        )
-        (selector ^ "[" ^ (fst (List.hd xs)) ^ "=" ^ (snd (List.hd xs)))
-        (List.tl xs) ^ "]"
-    in
     let graph_options_string = create_graph_options_string graph_options in
     let node_options_string = create_options_string "node" node_options in
     let edge_options_sting = create_options_string "edge" edge_options in
@@ -59,12 +41,6 @@ let generate_dot_from_mealy mm assg   =
         complete_node_string ^ "\n\n" ^ 
         edge_options_sting ^ "\n\n" ^
         complete_edge_string ^ "\n}"
-       
-
-let write_to_file f s = 
-    let oc = open_out f in
-        Printf.fprintf oc "%s" s;
-        close_out oc
 
 let write_dot_to_file mm f = 
     let dot = generate_dot_from_mealy mm None in

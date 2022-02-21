@@ -1,6 +1,7 @@
 open Logic.Values
 open Circuits.Examples
 open Circuits.Circuit
+open Dot.Circuit_diagram
 
 let () = 
   (* let latch = sr_latch 1 1 1 1 1 1 in *)
@@ -22,4 +23,5 @@ let () =
   let clk = make_clock 2 30 in
   let inputs = list_of_inputs_to_input_array [clk;s] in
   print_endline "D flipflop\n";
-  circuit_simulation_to_string 50 inputs instant_rising_edge_d_flipflop
+  circuit_simulation_to_string 50 inputs instant_rising_edge_d_flipflop;
+  write_circuit_to_file instant_rising_edge_d_flipflop "output.dot";

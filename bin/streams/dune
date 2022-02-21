@@ -1,4 +1,4 @@
 (executable
  (public_name circuit_streams_a)
  (name main)
- (libraries streams logic))
+ (libraries streams dot logic))
