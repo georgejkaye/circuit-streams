@@ -34,6 +34,7 @@ let rec max_element = function
 | x :: xs -> let max' = max_element xs in if x > max' then x else max'
 
 let nats n = List.init n (fun x -> x)
+let nats_from init n = List.init (n-1) (fun x -> x + init)
 
 let rec revnats n = match n with
 | 0 -> [0]
@@ -57,3 +58,26 @@ let remove_duplicates xs =
             []
             xs
     )
+
+let id x = x
+
+let array_to_string xs lbracket rbracket delimiter to_string = 
+    let len = Array.length xs in
+    let content = 
+        if len == 0 
+            then 
+                "" 
+            else
+                let first = to_string xs.(0)
+                in if len == 1 
+                    then 
+                        first 
+                    else 
+                        List.fold_left 
+                            (fun acc -> fun i -> acc ^ delimiter ^ to_string xs.(i)) 
+                            first 
+                            (nats_from 1 len)
+    in
+    lbracket ^ content ^ rbracket
+
+let array_nats n = Array.init n id

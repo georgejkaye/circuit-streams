@@ -67,9 +67,9 @@ let convert_classical_table_to_dnf tt =
         let convert_row_to_cnf row = 
             let (inputs, outputs) = row in
             let conjuncts = And (
-                List.map 
+                Array.map 
                     (fun j ->  if inputs.(j) == True then Var j else Not (Var j)) 
-                    (nats tt.inputs)
+                    (array_nats tt.inputs)
                 ) 
             in
             if outputs.(i) == True then
@@ -78,12 +78,18 @@ let convert_classical_table_to_dnf tt =
                 Not conjuncts
         in
         Or(
-            List.rev (List.fold_left
-                (fun acc -> fun j ->
-                    if (snd (tt.matrix.(j))).(i) == True then convert_row_to_cnf (tt.matrix.(j)) :: acc else acc)
-                [] 
-                (nats tt.rows)
-            ))
+            Array.of_list 
+                (List.rev 
+                    (List.fold_left
+                        (fun acc -> 
+                            fun j -> 
+                                if (snd (tt.matrix.(j))).(i) == True then convert_row_to_cnf (tt.matrix.(j)) :: acc else acc
+                        )
+                        [] 
+                        (nats tt.rows)
+                    )
+                )
+        )
     in 
     List.map convert_classical_table_to_dnf_column (nats tt.outputs)
 
@@ -91,11 +97,11 @@ let decode_right_weighted_dnf translations row dnf =
     let translation_matrix = translations.translations in
     let decoded = match dnf with    
         | Or xs ->
-            let decoded_term = List.mapi 
+            let decoded_term = Array.mapi 
                 (fun i -> fun clause ->
                     let decoded_clause =
                         let decode_clause =
-                            List.mapi
+                            Array.mapi
                             (fun _ -> function
                                 | Var n -> substitute (Var n) (fst translation_matrix.(i)).(n)
                                 | Not (Var n) -> Not (substitute (Var n) (fst translation_matrix.(i)).(n))

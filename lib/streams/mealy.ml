@@ -10,7 +10,7 @@ type mealy = {
     states: int;
     initial: int;
     (* T : S -> M -> S * N *)
-    transition_function: ((int * belnap_value list) * (belnap_value list * int)) list;
+    transition_function: ((int * belnap_value array) * (belnap_value array * int)) list;
 }
 
 let stream_to_mealy cs =
@@ -113,10 +113,8 @@ let mealy_to_truth_tables mm ord =
             fun ((s,m),(n,t)) -> 
                 let current_assignment = List.assoc s ord in
                 let next_assignment = List.assoc t ord in
-                let inputs = Array.of_list (current_assignment @ m) in
-                let outputs = Array.of_list n in
-                let transitions = Array.of_list next_assignment in
-                ((inputs, outputs) :: outputs_list, (inputs, transitions) :: transition_list)
+                let inputs = Array.append current_assignment m in
+                ((inputs, n) :: outputs_list, (inputs, next_assignment) :: transition_list)
         )
         ([], [])
         mm.transition_function
@@ -143,8 +141,8 @@ let mealy_to_string mm =
     let each_state = List.map 
         (fun ((s, m), (n, t)) -> 
             let current = string_of_int s in
-            let input = belnap_value_list_to_string m in
-            let output = belnap_value_list_to_string n in
+            let input = belnap_value_array_to_string m in
+            let output = belnap_value_array_to_string n in
             let next = string_of_int t in
             "s" ^ current ^ " | " ^
             input ^ " || " ^

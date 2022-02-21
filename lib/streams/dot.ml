@@ -17,8 +17,15 @@ let generate_dot_from_mealy mm assg   =
     let edge_strings = 
         List.map 
             (fun ((s, m), (n, t)) -> 
-                (get_node_text s) ^ " -> " ^ (get_node_text t) ^ "[label=\"  " ^ belnap_value_list_to_string m ^ " | " ^ belnap_value_list_to_string n ^ "  \"]"
-                )
+                (get_node_text s) ^ 
+                " -> " ^
+                (get_node_text t) ^
+                "[label=\"  " ^
+                belnap_value_array_to_string m ^
+                " | " ^
+                belnap_value_array_to_string n ^
+                "  \"]"
+            )
       mm.transition_function
     in
     let create_full_string xs = 

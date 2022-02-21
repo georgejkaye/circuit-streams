@@ -72,7 +72,8 @@ let all_inputs_of_length n =
             )
             []
             all_inputs
-    in remove_duplicates (all_inputs_of_length' n)
+    in let all = remove_duplicates (all_inputs_of_length' n)
+    in List.map Array.of_list all
 
 (* Ordering inputs *)
 
@@ -92,7 +93,7 @@ let value_list_order n =
         elements = all_values;
         order = List.map 
         (fun vs -> 
-            let less_thans = List.filter (list_lte value_order vs) all_values
+            let less_thans = List.filter (array_lte value_order vs) all_values
             in (vs, less_thans))
         all_values
     }
@@ -172,21 +173,21 @@ let join_b x y = match (x, y) with
 | (_, High) -> High
 | (Non, Non) -> Non
 
-let andn_b = List.fold_left and_b High
-let orn_b = List.fold_left or_b Low
-let eval_joinn = List.fold_left join_b Non
+let andn_b = Array.fold_left and_b High
+let orn_b = Array.fold_left or_b Low
+let eval_joinn = Array.fold_left join_b Non
 
 let nandn_b xs = not_b (andn_b xs)
 let norn_b xs = not_b (orn_b xs)
 
 
 let eval_gate g xs = match g with
-| And -> and_b (List.nth xs 0) (List.nth xs 1)
-| Or  -> or_b (List.nth xs 0) (List.nth xs 1)
-| Not -> not_b (List.nth xs 0)
-| Nor -> not_b (or_b (List.nth xs 0) (List.nth xs 1))
-| Nand -> not_b (and_b (List.nth xs 0) (List.nth xs 1))
-| Join -> join_b (List.nth xs 0) (List.nth xs 1)
+| And -> and_b xs.(0) xs.(1)
+| Or  -> or_b xs.(0) xs.(1)
+| Not -> not_b xs.(0)
+| Nor -> not_b (or_b xs.(0) xs.(1))
+| Nand -> not_b (and_b xs.(0) xs.(1))
+| Join -> join_b xs.(0) xs.(1)
 | AndN _ -> andn_b xs
 | OrN _ -> orn_b xs
 | NandN _ -> nandn_b xs
@@ -208,22 +209,25 @@ let belnap_to_classical_list vs =
             (List.map belnap_to_classical vs)
         )
 
-let list_of_inputs_to_input_list vss = 
+let list_of_inputs_to_input_array vss = 
     let length = get_max_length vss in
-    List.init
+    Array.init
         length
         (fun i ->
-            List.rev (List.fold_left
-                (fun acc -> fun cur -> 
-                    let v = match (List.nth cur i) with
-                        | v -> v
-                        | exception (Failure _) -> Non
-                in 
-                    v :: acc
+            Array.of_list 
+                (List.rev 
+                    (List.fold_left
+                        (fun acc -> fun cur -> 
+                            let v = match (List.nth cur i) with
+                            | v -> v
+                            | exception (Failure _) -> Non
+                            in 
+                            v :: acc
+                        )
+                    []
+                    vss
+                    )
                 )
-            []
-            vss
-            )
         )
 
 (**
@@ -251,8 +255,12 @@ let make_clock n k =
 (* Printers *)
 
 let value_list_to_string to_string vs = list_to_string vs "" "" "" to_string
+let value_array_to_string to_string vs = array_to_string vs "" "" "" to_string
 let value_list_list_to_string to_string vss = list_to_string vss "[" "]" " ; " (value_list_to_string to_string)
+let value_array_array_to_string to_string vss = array_to_string vss "[" "]" " ; " (value_array_to_string to_string)
 
 let belnap_value_list_to_string = value_list_to_string belnap_value_to_string
+let belnap_value_array_to_string = value_array_to_string belnap_value_to_string
 let belnap_value_list_list_to_string = value_list_list_to_string belnap_value_to_string
+let belnap_value_array_array_to_string = value_array_array_to_string belnap_value_to_string
 let classical_value_list_to_string = value_list_to_string classical_value_to_string
