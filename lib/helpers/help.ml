@@ -81,3 +81,5 @@ let array_to_string xs lbracket rbracket delimiter to_string =
     lbracket ^ content ^ rbracket
 
 let array_nats n = Array.init n id
+
+let nats_of xs = nats (Array.length xs)
