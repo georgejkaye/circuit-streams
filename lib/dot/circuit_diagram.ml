@@ -56,7 +56,7 @@ let generate_dot_from_circuit c =
                                 let edges = (input_edge :: delay_edge :: edges) in
                                 (nodes, edges, seen, frontier)
                             | Circuit (c, j) -> 
-                                let (p,d) = c.outputs.(j) in
+                                let (p,d,_) = c.outputs.(j) in
                                 (nodes, edges, seen, (p,d,out) :: frontier)
                             | Value v -> 
                                 let value_edge = "v" ^ belnap_value_to_string v ^ " -> " ^ delay_name in
@@ -67,16 +67,17 @@ let generate_dot_from_circuit c =
                     generate_nodes nodes edges seen frontier
 
     in
-    let (nodes, edges) = generate_nodes [] [] [] (Array.to_list (Array.mapi (fun i -> fun (p,d) -> (p,d,Output i)) c.outputs)) in
+    let (nodes, edges) = generate_nodes [] [] [] (Array.to_list (Array.mapi (fun i -> fun (p,d,_) -> (p,d,Output i)) c.outputs)) in
     let generate_interface_node out i str = 
         let name = if out then "out" else "in" in
         name ^ string_of_int i ^ "[shape=cds, fillcolor=gray, style=filled, label=\"" ^ str ^ "\"]" in
     let generate_value_node v = 
         let value = belnap_value_to_string v in "v" ^ value ^ "[label=\"" ^ value ^ "\"]"
     in
+    let output_names = get_output_names c in
     let output_nodes = 
         List.rev 
-            (List.fold_left (fun acc -> fun i -> (generate_interface_node true i c.output_names.(i)) :: acc) [] (nats_of c.output_names))
+            (List.fold_left (fun acc -> fun i -> (generate_interface_node true i output_names.(i)) :: acc) [] (nats_of output_names))
     in
     let input_nodes = 
         List.rev 

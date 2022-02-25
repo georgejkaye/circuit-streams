@@ -247,9 +247,9 @@ let make_waveform xs =
     Create a clock waveform that alternates high and low for n ticks at a time,
     for k iterations
 *)
-let make_clock n k =
+let make_clock n k start =
     List.init (n*(k*2)) (fun i -> 
-        if i mod (2 * n) < n then High else Low)
+        if i mod (2 * n) < n then if start then High else Low else if start then Low else High)
 
 
 (* Printers *)

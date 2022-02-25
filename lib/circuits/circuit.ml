@@ -13,9 +13,11 @@ type block = {
     | Value of belnap_value
 and circuit = {
     input_names: string array;
-    output_names: string array;
-    outputs: (port * int) array
+    outputs: (port * int * string) array
 }
+
+let get_output_names c =
+    Array.map (fun (_,_,name) -> name) c.outputs
 
 let gates c = 
     let rec gates' seen c =
@@ -27,33 +29,75 @@ let gates c =
             | Circuit (c, _) -> gates' seen c 
             | Value _ -> seen
         in
-        Array.fold_left (fun seen -> fun (cur, _) -> gates'' seen cur) seen c.outputs
+        Array.fold_left (fun seen -> fun (cur, _, _) -> gates'' seen cur) seen c.outputs
     in
     List.length (gates' [] c)
 
 let get_output_port c i = 
-    let (output, _) = c.outputs.(i) in
+    let (output, _, _) = c.outputs.(i) in
     output
 
-
-let rec set_circuit_inputs c ins = 
-    let rec set_port_inputs = function
-        | Block b -> Block (set_block_inputs b)
-        | Input i -> ins.(i)
-        | Circuit (c, j) -> let c = set_circuit_inputs c ins in Circuit (c, j) 
-        | Value v -> Value v
-    and set_block_inputs b = 
-        {
-            id = b.id;
-            ports = Array.map (fun (p, d) -> (set_port_inputs p, d)) b.ports;
-            gate = b.gate
-        }   
+let combine_circuits circuits outputs input_names =
+    let get_actual_port_and_delay output = 
+        let (circuit_number, number, delay, name) = output in
+        let (actual_circuit, _) = circuits.(circuit_number) in
+        let (port, new_delay, _) = actual_circuit.outputs.(number) in
+        (port, delay + new_delay, name)
+    in
+    let replace_inputs circ replacements = 
+        let rec replace_inputs' seen frontier =
+            if frontier == [] then () else 
+                let (p, _) = List.hd frontier in
+                let frontier = if List.length frontier > 1 then List.tl frontier else [] in
+                let (seen, frontier) =
+                    match p with
+                        | Block b -> 
+                            if List.mem b.id seen then 
+                                (seen, frontier) 
+                            else
+                                let frontier = List.fold_left
+                                    (fun frontier -> fun i -> 
+                                        match b.ports.(i) with 
+                                            | (Input j, d) -> 
+                                                let replacement = replacements.(j) in
+                                                b.ports.(i) <- (replacement, d);
+                                                frontier
+                                            | p -> p :: frontier
+                                    ) 
+                                    frontier
+                                    (nats_of b.ports)
+                                in (b.id :: seen, frontier)
+                        | Circuit (c,i) -> 
+                            let (port,delay,_) = c.outputs.(i) in
+                            (seen, (port,delay) :: frontier)
+                        | Value _ -> (seen, frontier)
+                        | Input _ -> (seen, frontier)
+                in
+                replace_inputs' seen frontier
+        in
+        replace_inputs' [] (Array.to_list (Array.map (fun (p,d,_) -> (p,d)) circ.outputs))
+    in
+    Array.iter (fun (circ, inputs) -> replace_inputs circ inputs) circuits;
+    let outputs = Array.map get_actual_port_and_delay outputs
     in
     {
-        input_names = c.input_names;
-        output_names = c.output_names;
-        outputs = Array.map (fun (p, d) -> (set_port_inputs p, d)) c.outputs
+        input_names = input_names;
+        outputs = outputs
     }
+
+let iterate c x m n inputs outputs = 
+    let (id, c1) = c 0 in
+    let (id, c2) = c id in
+    let (_, c3) = c id in
+    combine_circuits
+        [| 
+            (c1, Array.init (x + m) (fun i -> if i < x then Value Non else Input (i - x))) ;
+            (c2, Array.init (x + m) (fun i -> if i < x then Circuit (c1, i) else Input (i - x))) ;
+            (c3, Array.init (x + m) (fun i -> if i < x then Circuit (c2, i) else Input (i - x))) 
+        |]
+        (Array.init n (fun i -> (2, i + x, 0, outputs.(i))))
+        inputs
+
 
 (**
     Evaluate a port
@@ -111,7 +155,7 @@ and lookup_block lookup i vss b =
                 (lookup, evaled)
 and evaluate_circuit lookup i vss c = 
     Array.fold_left_map
-        (fun lookup -> fun (p, d) -> evaluate_port lookup i vss p d)
+        (fun lookup -> fun (p, d, _) -> evaluate_port lookup i vss p d)
         lookup
         c.outputs
 and begin_evaluation i vss c =
@@ -134,7 +178,7 @@ let circuit_simulation_to_string n inputs c =
     let print_header_section names = array_to_string names "" "" " " id
     in
     let input_header = print_header_section c.input_names in
-    let output_header = print_header_section c.output_names in
+    let output_header = print_header_section (Array.map (fun (_,_,name) -> name) c.outputs) in
     let header = input_header ^ " | " ^ output_header in
     print_endline header;
     let line = String.init (String.length header) (fun _ -> '-') in
@@ -148,7 +192,7 @@ let circuit_simulation_to_string n inputs c =
             list_to_string (nats num) "" "" " " (fun i -> print_cell vs.(i) lengths.(i))
         in
         let input_section = print_section inputs.(i) c.input_names in
-        let output_section = print_section outputs.(i) c.output_names in
+        let output_section = print_section outputs.(i) (Array.map (fun (_,_,name) -> name) c.outputs) in
         input_section ^ " | " ^ output_section
     in
     if n == 0 then () else

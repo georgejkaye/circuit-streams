@@ -13,13 +13,34 @@ let sr_latch a b c d e f =
     in
     {
         input_names = [| "R" ; "S" |];
-        output_names = [| "Q" ; "Q'" |];
         outputs = [|
-            (Block f_block, e);
-            (Block g_block, f)
+            (Block f_block, e, "Q");
+            (Block g_block, f, "Q'")
         |]
     }
 
+let sr_latch_instant =
+    let make_iteration id = 
+        let rec f_block = {
+            id = id;
+            ports = [| (Input 1, 0) ; (Input 0, 0) |];
+            gate = Nor;
+        } and g_block = {
+            id = id + 1;
+            ports = [| (Block f_block, 0) ; (Input 2, 0) |];
+            gate = Nor;
+        }
+        in
+        (id + 2, {
+            input_names = [| "Fb" ; "R" ; "S" |];
+            outputs = [|
+                (Block g_block, 0, "Fb");
+                (Block f_block, 0, "Q");
+                (Block g_block, 0, "Q'");
+            |]
+        })
+    in
+    iterate (make_iteration) 1 2 2 [| "R" ; "S" |] [| "Q" ; "Q'" |]
 
   let d_flipflop a b c d e f g h i j k = 
     let rec nand0 = {
@@ -50,10 +71,9 @@ let sr_latch a b c d e f =
     in
     {
         input_names = [| "D" ; "Clk" |];
-        output_names = [| "Q" ; "Q'" |];
         outputs = [|
-            (Block nand2, j);
-            (Block nand3, k)
+            (Block nand2, j, "Q");
+            (Block nand3, k, "Q'")
         |]
     }
 
@@ -87,8 +107,7 @@ let positive_edge_d_flip_flop a b c d e f g h i j k l m n o =
     in
     {
         input_names = [| "Clock";"Data" |] ;
-        output_names = [| "Q"; "Q'" |] ;
-        outputs = [| (Block nand4, n) ; (Block nand5, o) |]
+        outputs = [| (Block nand4, n, "Q") ; (Block nand5, o, "Q'") |]
     }
 
 let instant_block_f i =
@@ -120,8 +139,7 @@ let instant_block_f i =
     in 
     (i + 6, {
         input_names = [| ""; "" |];
-        output_names = [| "Q" ; "Q'" |];
-        outputs = [| (Block nand4, 0) ; (Block nand5, 0) |]
+        outputs = [| (Block nand4, 0, "Q") ; (Block nand5, 0, "Q'") |]
     })
 
 let instant_block_f' i = 
@@ -153,19 +171,37 @@ let instant_block_f' i =
     in
     (i + 6, {
         input_names = [| "" ; "" ; "" |];
-        output_names = [| "Q" ; "Q'" |];
-        outputs = [| (Block nand4, 0) ; (Block nand5, 0) |]
+        outputs = [| (Block nand4, 0, "Q") ; (Block nand5, 0, "Q'") |]
     })
 
+let combined_instant_blocks id =
+    let (id, circ1) = instant_block_f id in
+    let (id, circ2) = instant_block_f' id in
+    let (id, circ3) = instant_block_f id in 
+    let circ = combine_circuits 
+        [|
+            (circ1, [| Input 0 ; Input 1 |]) ;
+            (circ2, [| Circuit (circ1, 1) ; Input 1 ; Input 2 |]) ;
+            (circ3, [| Circuit (circ1, 1) ; Circuit (circ2, 0) |])
+        |]
+        [| (1, 1, 0, "Fb") ; (2, 0, 0, "Q") ; (2, 1, 0, "Q'") |]
+        [| "Fb" ; "Clk" ; "Data" |]
+    in
+    (id, circ) 
+
+type outports = Output of int | Blockport of int * int
+
 let instant_rising_edge_d_flipflop = 
-    let (_, circ1) = instant_block_f 0 in
-    (* let (id, circ2) = instant_block_f' id in
-    let (_, circ3) = instant_block_f id in 
-    let circ1 = set_circuit_inputs circ1 [| Circuit (circ2, 1) ; Input 0 |] in
-    let circ2 = set_circuit_inputs circ2 [| Circuit (circ1, 1) ; Input 0 ; Input 1 |] in
-    let circ3 = set_circuit_inputs circ3 [| Circuit (circ1, 1) ; Circuit (circ2, 0) |] in *)
-    {
-        input_names = [| "Clk" ; "Data" |];
-        output_names = [| "Q" ; "Q'" |];
-        outputs = [| (Circuit (circ1, 0), 0) ; (Circuit (circ1, 1) , 0) |]
-    }
+    let (id, combined1) = combined_instant_blocks 0 in
+    let (id, combined2) = combined_instant_blocks id in
+    let (_, combined3) = combined_instant_blocks id in
+    let circ = combine_circuits
+        [| 
+            (combined1, [| Value Non ; Input 0 ; Input 1 |]) ;
+            (combined2, [| Circuit (combined1, 0) ; Input 0 ; Input 1 |]) ;
+            (combined3, [| Circuit (combined2, 0) ; Input 0 ; Input 1 |]) ;
+        |]
+        [| (2, 1, 0, "Q") ; (2, 2, 0, "Q'") |]
+        [| "Clk" ; "Data" |]
+    in
+    circ

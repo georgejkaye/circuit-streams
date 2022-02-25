@@ -56,6 +56,15 @@ f ⊔ ⊤ = ⊤
 _↓_ : B4 → B4 → B4
 x ↓ y = ¬ (x ∨ y)
  
+_↑_ : B4 → B4 → B4 
+x ↑ y = ¬ (x ∧ y)
+
+nor : B4 → B4 → B4
+nor x y = x ↓ y
+
+nand : B4 → B4 → B4
+nand x y = x ↑ y
+
 ↓⊥-↓⊥ : {a : B4} → (a ↓ ⊥) ↓ ⊥ ≡ ⊥
 ↓⊥-↓⊥ {⊥} = refl
 ↓⊥-↓⊥ {t} = refl
