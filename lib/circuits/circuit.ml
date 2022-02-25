@@ -88,8 +88,8 @@ let combine_circuits circuits outputs input_names =
 let iterate c x m n inputs outputs = 
     let (id, c1) = c 0 in
     let (id, c2) = c id in
-    let (_, c3) = c id in
-    combine_circuits
+    let (id, c3) = c id in
+    (id, combine_circuits
         [| 
             (c1, Array.init (x + m) (fun i -> if i < x then Value Non else Input (i - x))) ;
             (c2, Array.init (x + m) (fun i -> if i < x then Circuit (c1, i) else Input (i - x))) ;
@@ -97,6 +97,7 @@ let iterate c x m n inputs outputs =
         |]
         (Array.init n (fun i -> (2, i + x, 0, outputs.(i))))
         inputs
+    )
 
 
 (**

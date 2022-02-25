@@ -1,3 +1,5 @@
+open Logic.Values
+
 open Circuit
 
 let sr_latch a b c d e f =
@@ -19,20 +21,25 @@ let sr_latch a b c d e f =
         |]
     }
 
-let sr_latch_instant =
+let sr_latch_instant gate =
+    let (input_a, input_b) = match gate with
+        | Nor -> ("R", "S")
+        | Nand -> ("S", "R")
+        | _ -> failwith "Not a valid sr latch gate"
+    in
     let make_iteration id = 
         let rec f_block = {
             id = id;
             ports = [| (Input 1, 0) ; (Input 0, 0) |];
-            gate = Nor;
+            gate = gate;
         } and g_block = {
             id = id + 1;
             ports = [| (Block f_block, 0) ; (Input 2, 0) |];
-            gate = Nor;
+            gate = gate;
         }
         in
         (id + 2, {
-            input_names = [| "Fb" ; "R" ; "S" |];
+            input_names = [| "Fb" ; input_a ; input_b |];
             outputs = [|
                 (Block g_block, 0, "Fb");
                 (Block f_block, 0, "Q");
@@ -40,9 +47,33 @@ let sr_latch_instant =
             |]
         })
     in
-    iterate (make_iteration) 1 2 2 [| "R" ; "S" |] [| "Q" ; "Q'" |]
+    iterate (make_iteration) 1 2 2 [| input_a ; input_b |] [| "Q" ; "Q'" |] 
 
-  let d_flipflop a b c d e f g h i j k = 
+let gated_sr_latch_instant = 
+    let (id, sr_latch) = sr_latch_instant Nand in
+    let top_block = {
+        id = id;
+        ports = [| (Input 0, 0) ; (Input 1, 0) |];
+        gate = Nand;
+    } in
+    let bot_block = {
+        id = id+1;
+        ports = [| (Input 1, 0) ; (Input 2, 0) |];
+        gate = Nand;
+    } in
+    let gate = {
+        input_names = [| "S" ; "E" ; "R" |];
+        outputs = [| (Block top_block, 0, "Q") ; (Block bot_block, 0, "Q'") |];
+    } in
+    combine_circuits 
+        [|
+            (gate, [| Input 0 ; Input 1 ; Input 2 |]);
+            (sr_latch, [| Circuit (gate, 0) ; Circuit (gate, 1) |])   
+        |]
+        [| (1, 0, 0, "Q") ; (1, 1, 0, "Q'" ) |]
+        [| "S" ; "E" ; "R" |]
+
+let d_flipflop a b c d e f g h i j k = 
     let rec nand0 = {
         id = 0;
         gate = Nand;

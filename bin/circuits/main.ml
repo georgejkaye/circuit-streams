@@ -20,8 +20,8 @@ let () =
       (Low, 40)
     ]
   in
-  (* let clk = make_clock 5 30 false in *)
-  let inputs = list_of_inputs_to_input_array [r;s] in
-  let flipflop = sr_latch_instant in
-  circuit_simulation_to_string 50 inputs flipflop;
+  let clk = make_clock 10 50 false in
+  let inputs = list_of_inputs_to_input_array [s; clk; r] in
+  let flipflop = d_flipflop 1 1 1 1 1 1 1 1 1 1 1 in
+  circuit_simulation_to_string 50 inputs gated_sr_latch_instant;
   write_circuit_to_file flipflop "output.dot";
