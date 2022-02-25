@@ -83,3 +83,8 @@ let array_to_string xs lbracket rbracket delimiter to_string =
 let array_nats n = Array.init n id
 
 let nats_of xs = nats (Array.length xs)
+
+let merge_rows xs =
+    let x = List.fold_left (fun acc -> fun cur -> acc + Array.length cur.(0)) 0 xs in
+    let new_table = Array.make_matrix x  Non 
+

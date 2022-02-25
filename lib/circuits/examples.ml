@@ -2,26 +2,26 @@ open Logic.Values
 
 open Circuit
 
-let sr_latch a b c d e f =
+let sr_latch id a b c d e f =
     let rec f_block = {
-        id = 0;
+        id = id;
         ports = [| (Input 0, a); (Block g_block, b) |];
         gate = Nor;
     } and g_block = {
-        id = 1;
+        id = id + 1;
         ports = [| (Block f_block, c) ; (Input 1, d) |];
         gate = Nor;
     } 
     in
-    {
+    (id + 2, {
         input_names = [| "R" ; "S" |];
         outputs = [|
             (Block f_block, e, "Q");
             (Block g_block, f, "Q'")
         |]
-    }
+    })
 
-let sr_latch_instant gate =
+let sr_latch_instant id gate =
     let (input_a, input_b) = match gate with
         | Nor -> ("R", "S")
         | Nand -> ("S", "R")
@@ -47,31 +47,46 @@ let sr_latch_instant gate =
             |]
         })
     in
-    iterate (make_iteration) 1 2 2 [| input_a ; input_b |] [| "Q" ; "Q'" |] 
+    iterate id (make_iteration) 1 2 2 [| input_a ; input_b |] [| "Q" ; "Q'" |] 
 
-let gated_sr_latch_instant = 
-    let (id, sr_latch) = sr_latch_instant Nand in
+let create_latch_gate id = 
     let top_block = {
         id = id;
         ports = [| (Input 0, 0) ; (Input 1, 0) |];
         gate = Nand;
     } in
     let bot_block = {
-        id = id+1;
+        id = id + 1;
         ports = [| (Input 1, 0) ; (Input 2, 0) |];
         gate = Nand;
     } in
-    let gate = {
+    (id + 2, {
         input_names = [| "S" ; "E" ; "R" |];
         outputs = [| (Block top_block, 0, "Q") ; (Block bot_block, 0, "Q'") |];
-    } in
+    })
+
+
+let gated_sr_latch_spec gate latch = 
+    let names = get_output_names latch in
     combine_circuits 
-        [|
-            (gate, [| Input 0 ; Input 1 ; Input 2 |]);
-            (sr_latch, [| Circuit (gate, 0) ; Circuit (gate, 1) |])   
-        |]
-        [| (1, 0, 0, "Q") ; (1, 1, 0, "Q'" ) |]
-        [| "S" ; "E" ; "R" |]
+    [|
+        (gate, [| Input 0 ; Input 1 ; Input 2 |]);
+        (latch, [| Circuit (gate, 0) ; Circuit (gate, 1) |])   
+    |]
+    [| (1, 0, 0, "Q") ; (1, 1, 0, "Q'" ) |]
+    [| names.(0) ; "E" ; names.(1) |]
+
+let gated_sr_latch a b c d e f =
+    let (id, gate) = create_latch_gate 0 in
+    let (_, sr_latch) = sr_latch id a b c d e f in
+    gated_sr_latch_spec gate sr_latch
+
+
+let gated_sr_latch_instant = 
+    let (id, gate) = create_latch_gate 0 in
+    let (_, sr_latch) = sr_latch_instant id Nand in
+    gated_sr_latch_spec gate sr_latch
+    
 
 let d_flipflop a b c d e f g h i j k = 
     let rec nand0 = {
