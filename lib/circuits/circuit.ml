@@ -174,19 +174,24 @@ let simulate_circuit n inputs c =
     in
     outputs
 
+let compare cs = 
+    let inputs = Array.concat (List.map (fun c -> c.input_names) cs) in
+    let outputs = Array.concat (List.map (fun c -> c.outputs) cs) in
+    {
+        input_names = inputs;
+        outputs = outputs;
+    }
 
-let circuit_simulation_to_string n inputs names cs = 
+let circuit_simulation_to_string n inputs c = 
     let print_header_section names = array_to_string names "" "" " " id
     in
-    let input_header = print_header_section names in
-    let output_header = print_header_section (Array.concat (List.map (fun c -> get_output_names c) cs))
-    in
+    let input_header = print_header_section c.input_names in
+    let output_header = print_header_section (Array.map (fun (_,_,name) -> name) c.outputs) in
     let header = input_header ^ " | " ^ output_header in
     print_endline header;
     let line = String.init (String.length header) (fun _ -> '-') in
     print_endline line;
-    let outputs = List.map (simulate_circuit n inputs) cs in
-    let outputs = merge_rows outputs in
+    let outputs = simulate_circuit n inputs c in
     let print_row i = 
         let print_section vs names =
             let lengths = Array.map (String.length) names in
@@ -194,7 +199,7 @@ let circuit_simulation_to_string n inputs names cs =
             let print_cell v n = (belnap_value_to_string v) ^ String.init (n - 1) (fun _ -> ' ') in  
             list_to_string (nats num) "" "" " " (fun i -> print_cell vs.(i) lengths.(i))
         in
-        let input_section = print_section inputs.(i) names in
+        let input_section = print_section inputs.(i) c.input_names in
         let output_section = print_section outputs.(i) (Array.map (fun (_,_,name) -> name) c.outputs) in
         input_section ^ " | " ^ output_section
     in

@@ -67,25 +67,25 @@ let create_latch_gate id =
 
 
 let gated_sr_latch_spec gate latch = 
-    let names = get_output_names latch in
+    let output_names = get_output_names latch in
     combine_circuits 
     [|
         (gate, [| Input 0 ; Input 1 ; Input 2 |]);
         (latch, [| Circuit (gate, 0) ; Circuit (gate, 1) |])   
     |]
-    [| (1, 0, 0, "Q") ; (1, 1, 0, "Q'" ) |]
-    [| names.(0) ; "E" ; names.(1) |]
+    [| (1, 0, 0, output_names.(0)) ; (1, 1, 0, output_names.(1)) |]
+    gate.input_names
 
-let gated_sr_latch a b c d e f =
-    let (id, gate) = create_latch_gate 0 in
-    let (_, sr_latch) = sr_latch id a b c d e f in
-    gated_sr_latch_spec gate sr_latch
+let gated_sr_latch id a b c d e f =
+    let (id, gate) = create_latch_gate id in
+    let (id, sr_latch) = sr_latch id a b c d e f in
+    (id, gated_sr_latch_spec gate sr_latch)
 
 
-let gated_sr_latch_instant = 
-    let (id, gate) = create_latch_gate 0 in
-    let (_, sr_latch) = sr_latch_instant id Nand in
-    gated_sr_latch_spec gate sr_latch
+let gated_sr_latch_instant id = 
+    let (id, gate) = create_latch_gate id in
+    let (id, sr_latch) = sr_latch_instant id Nand in
+    (id, gated_sr_latch_spec gate sr_latch)
     
 
 let d_flipflop a b c d e f g h i j k = 
@@ -152,7 +152,7 @@ let positive_edge_d_flip_flop a b c d e f g h i j k l m n o =
     }
     in
     {
-        input_names = [| "Clock";"Data" |] ;
+        input_names = [| "Clock"; "Data" |] ;
         outputs = [| (Block nand4, n, "Q") ; (Block nand5, o, "Q'") |]
     }
 

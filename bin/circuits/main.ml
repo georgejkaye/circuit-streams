@@ -22,6 +22,8 @@ let () =
   in
   let clk = make_clock 10 50 false in
   let inputs = list_of_inputs_to_input_array [s; clk; r] in
-  let flipflop = d_flipflop 1 1 1 1 1 1 1 1 1 1 1 in
-  circuit_simulation_to_string 50 inputs gated_sr_latch_instant;
-  write_circuit_to_file flipflop "output.dot";
+  let (id, instant) = gated_sr_latch_instant 0 in
+  let (_, delayed) = gated_sr_latch id 1 1 1 1 1 1 in 
+  let circuit = compare [delayed ; instant] in
+  circuit_simulation_to_string 50 inputs circuit;
+  write_circuit_to_file circuit "output.dot";
