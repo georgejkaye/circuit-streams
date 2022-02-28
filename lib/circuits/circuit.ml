@@ -19,6 +19,9 @@ and circuit = {
 let get_output_names c =
     Array.map (fun (_,_,name) -> name) c.outputs
 
+let get_output_ports c =
+    Array.map (fun (port,_,_) -> port) c.outputs
+
 let gates c = 
     let rec gates' seen c =
         let rec gates'' seen = function
@@ -32,6 +35,50 @@ let gates c =
         Array.fold_left (fun seen -> fun (cur, _, _) -> gates'' seen cur) seen c.outputs
     in
     List.length (gates' [] c)
+
+let traverse f acc c =
+    let rec traverse' seen frontier f acc = 
+        match frontier with
+            | [] -> acc
+            | port :: frontier -> 
+        let acc = f acc port in
+        let (seen, frontier) = match port with 
+            | Block b -> 
+                if List.mem b.id seen 
+                    then 
+                        (seen, frontier) 
+                    else 
+                        let ports = b.ports in
+                        let nexts = Array.to_list (Array.map (fun (p,_) -> p) ports) in
+                        (b.id :: seen, nexts @ frontier)
+            | Input _ -> (seen, frontier)
+            | Circuit (c, i) -> (seen, (get_output_ports c).(i) :: frontier)
+            | Value _ -> (seen, frontier)
+        in
+        traverse' seen frontier f acc
+    in
+    traverse' [] (Array.to_list (get_output_ports c)) f acc
+
+let get_inputs c =
+    1 + traverse (fun acc -> function
+        | Input i -> max acc i
+        | _ -> acc
+    ) 0 c
+
+let get_outputs c = Array.length c.outputs
+
+let increment_inputs k c =
+    traverse (fun _ -> function
+        | Block b ->   
+            (List.fold_left 
+                (fun _ -> fun i -> match b.ports.(i) with
+                    | (Input j, d) -> b.ports.(i) <- (Input (j+k), d)
+                    | _ -> ()
+                ) () (nats_of b.ports)
+            )
+        | _ -> ())
+    ()
+    c
 
 let get_output_port c i = 
     let (output, _, _) = c.outputs.(i) in
@@ -148,13 +195,12 @@ and evaluate_block lookup i vss b =
     (lookup, eval_gate b.gate evaled_ports)
 and lookup_block lookup i vss b = 
     if i < 0 then (lookup, Non) else
-        (print_endline ("About to lookup " ^ string_of_int b.id ^ " from an array of " ^ string_of_int (Array.length lookup));
         match lookup.(b.id).(i) with 
             | Some v -> (lookup, v)
             | None -> 
                 let (lookup, evaled) = evaluate_block lookup i vss b in
                 lookup.(b.id).(i) <- Some evaled;
-                (lookup, evaled))
+                (lookup, evaled)
 and evaluate_circuit lookup i vss c = 
     Array.fold_left_map
         (fun lookup -> fun (p, d, _) -> evaluate_port lookup i vss p d)
@@ -175,11 +221,32 @@ let simulate_circuit n inputs c =
     in
     outputs
 
-let compare cs = 
-    let inputs = Array.concat (List.map (fun c -> c.input_names) cs) in
-    let outputs = Array.concat (List.map (fun c -> c.outputs) cs) in
+let compare cs =
+    let ((_, hd_circ), tl) = match cs with
+        | [] -> failwith "[compare] No circuits to compare"
+        | (hd :: tl) -> (hd, tl)
+    in 
+    let input_length = get_inputs hd_circ in
+    let output_length = get_outputs hd_circ in
+    List.fold_left
+        (fun _ -> fun (_, cur_circ) -> 
+            if input_length == get_inputs cur_circ && output_length == get_outputs cur_circ 
+                then () 
+                else failwith "[compare] Not all circuits have the same inputs and outputs"
+        )
+        ()
+        tl
+    ;
+    let outputs = Array.concat (
+        List.map
+            (fun (name, circ) -> 
+                let outputs = circ.outputs in
+                Array.map (fun (p,d,s) -> (p,d,name ^ s)) outputs
+            ) 
+            cs)
+    in
     {
-        input_names = inputs;
+        input_names = hd_circ.input_names;
         outputs = outputs;
     }
 
