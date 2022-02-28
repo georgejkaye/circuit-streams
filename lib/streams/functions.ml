@@ -1,4 +1,4 @@
-open Core.Helpers
+open Helpers.Help
 open Logic.Values
 open Logic.Approximant
 
@@ -47,7 +47,7 @@ let get_history_up_to cs i =
 (* Operations on streams *)
 
 let initial_output cs a = 
-    eval_func empty_history (get_nth_behaviour cs 0) [a]
+    eval_func empty_history (get_nth_behaviour cs 0) [| a |]
 
 
 let stream_derivative cs a = 
@@ -63,7 +63,7 @@ let stream_derivative cs a =
     let new_prefix_evaled = evalf 1 new_prefix in
     let new_period_evaled = evalf ((List.length new_prefix) + 1) (cs.period_behvaiour) in
     {
-        name = cs.name ^ "{" ^ (belnap_value_list_to_string a) ^ "}";
+        name = cs.name ^ "{" ^ (belnap_value_array_to_string a) ^ "}";
         inputs = cs.inputs;
         outputs = cs.outputs;
         prefix_behaviour = new_prefix_evaled;
@@ -81,9 +81,16 @@ let stream_equality cs ds =
     let longest = max (defined_behaviour cs) (defined_behaviour ds) in
     let csb = get_n_behaviours cs longest in
     let dsb = get_n_behaviours ds longest in
-    List.fold_left2 (fun acc -> fun c -> fun d -> acc &&
-        List.fold_left2 (fun acc -> fun c -> fun d -> acc && func_equality c d ) true c.func d.func)
-    true csb dsb
+    List.fold_left2 
+        (fun acc -> fun c -> fun d -> acc &&
+            List.fold_left 
+                (fun acc -> fun i -> acc && func_equality c.func.(i) d.func.(i))
+                true
+                (nats (Array.length c.func))
+        )
+        true
+        csb
+        dsb
 
 (* Simulating streams *)
 

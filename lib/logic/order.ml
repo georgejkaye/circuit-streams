@@ -1,4 +1,4 @@
-open Core.Helpers
+open Helpers.Help
 
 type 'a partial_order = {
     elements: 'a list;
@@ -10,7 +10,7 @@ let po_lte po x y = if x == y then true else match List.assoc_opt x po.order wit
     | Some ys -> List.mem y ys
 
 let list_lte po = List.fold_left2 (fun acc -> fun x -> fun y -> acc && po_lte po x y) true
-        
+let array_lte po xs ys = List.fold_left (fun acc -> fun i -> acc && po_lte po xs.(i) ys.(i)) true (nats (Array.length xs))        
 
 let derive_order_from_existing po map =
     let new_order = List.map (fun (p,ps) -> (List.assoc p map, List.map (fun p -> List.assoc p map) ps)) po.order in

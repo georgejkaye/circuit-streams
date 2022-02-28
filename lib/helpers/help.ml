@@ -25,12 +25,16 @@ let list_to_string_def xs to_string = list_to_string xs "[" "]" ";" to_string
 let print_list xs lbracket rbracket delimiter to_string = print_endline (list_to_string xs lbracket rbracket delimiter to_string)
 let print_list_def xs to_string = print_list xs "[" "]" ";" to_string
 
+let get_max_length vss = 
+    List.fold_left (fun acc -> fun cur -> max acc (List.length cur)) 0 vss
+
 let rec max_element = function
 | [] -> failwith "[max] empty list"
 | [x] -> x
 | x :: xs -> let max' = max_element xs in if x > max' then x else max'
 
 let nats n = List.init n (fun x -> x)
+let nats_from init n = List.init (n-1) (fun x -> x + init)
 
 let rec revnats n = match n with
 | 0 -> [0]
@@ -54,3 +58,40 @@ let remove_duplicates xs =
             []
             xs
     )
+
+let id x = x
+
+let get_longest_string xs = Array.fold_left (fun acc -> fun cur -> max acc (String.length cur)) 0 xs
+
+let pad_back n s = 
+    let length = String.length s in
+    if n < length 
+        then 
+            s 
+        else
+            let i = n - length in
+            let ws = String.init i (fun _ -> ' ') in
+            s ^ ws
+
+let array_to_string xs lbracket rbracket delimiter to_string = 
+    let len = Array.length xs in
+    let content = 
+        if len == 0 
+            then 
+                "" 
+            else
+                let first = to_string xs.(0)
+                in if len == 1 
+                    then 
+                        first 
+                    else 
+                        List.fold_left 
+                            (fun acc -> fun i -> acc ^ delimiter ^ to_string xs.(i)) 
+                            first 
+                            (nats_from 1 len)
+    in
+    lbracket ^ content ^ rbracket
+
+let array_nats n = Array.init n id
+
+let nats_of xs = nats (Array.length xs)

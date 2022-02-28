@@ -4,16 +4,17 @@ open Logic.Approximant
 
 open Streams.Functions
 open Streams.Mealy
-open Streams.Dot
+
+open Dot.Mealy_machine
 
 (* Example *)
 
 let f0 = {
-    func = [ Input (0, 0) ]
+    func = [| Input (0, 0) |]
 }
 
 let fkp1 = {
-    func = [ Apply (Join, [Approx (1, 0) ; Input (0, 0)])]
+    func = [| Apply (Join, [| Approx (1, 0) ; Input (0, 0) |]) |]
 }
 
 let f = {
@@ -25,13 +26,13 @@ let f = {
 }
 
 let g0 = {
-    func = [ Value High ; Value Non ]
+    func = [| Value High ; Value Non |]
 }
 
 let g2kp1 = {
-    func = [ Value Non ; Input (1, 0) ]
+    func = [| Value Non ; Input (1, 0) |]
 } and g2kp2 = {
-    func = [ Value Non ; Value Low ]
+    func = [| Value Non ; Value Low |]
 }
 
 let g = {
@@ -43,19 +44,19 @@ let g = {
 }
 
 let h0 = {
-    func = [ Value Non ]
+    func = [| Value Non |]
 }
 
 let h1 = {
-    func = [ Value Non ]
+    func = [| Value Non |]
 }
 
 let h2 = {
-    func = [ Value High ]
+    func = [| Value High |]
 }
 
 let h3 = {
-    func = [ Value Low ]
+    func = [| Value Low |]
 }
 
 let h = {
