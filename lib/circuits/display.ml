@@ -10,7 +10,7 @@ let low_to_high_u = "┌"
 let low_to_high_d = "┘"
 let stable = "─"
 
-let none = " "
+let none = "."
 
 let short_u = "*"
 let short_d = "*"
@@ -29,10 +29,11 @@ https://github.com/janestreet/hardcaml_waveterm
 @param inputs The inputs to the circuit
 *)
 let draw_outputs c n inputs =
+    let name_length = 1 + max (get_longest_string (c.input_names)) (get_longest_string (get_output_names c)) in
+    let input_names = Array.map (pad_back name_length) c.input_names in
+    let output_names = Array.map (pad_back name_length) (get_output_names c) in
     let outputs = simulate_circuit n inputs c in
     let draw_waveforms names vss = 
-        let name_length = get_longest_string names + 1 in
-        let names = Array.map (pad_back name_length) names in
         List.rev (List.fold_left  
         (fun acc -> fun i -> 
             let (_, str_u, str_d) = List.fold_left 
@@ -58,8 +59,8 @@ let draw_outputs c n inputs =
         []
         (nats_of names))
     in
-    let input_waveforms = draw_waveforms (c.input_names) inputs in
-    let output_waveforms = draw_waveforms (get_output_names c) outputs in
+    let input_waveforms = draw_waveforms input_names inputs in
+    let output_waveforms = draw_waveforms output_names outputs in
     List.fold_left (fun _ -> print_endline) () input_waveforms;
     List.fold_left (fun _ -> print_endline) () output_waveforms;
 
