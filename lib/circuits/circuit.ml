@@ -148,12 +148,13 @@ and evaluate_block lookup i vss b =
     (lookup, eval_gate b.gate evaled_ports)
 and lookup_block lookup i vss b = 
     if i < 0 then (lookup, Non) else
+        (print_endline ("About to lookup " ^ string_of_int b.id ^ " from an array of " ^ string_of_int (Array.length lookup));
         match lookup.(b.id).(i) with 
             | Some v -> (lookup, v)
             | None -> 
                 let (lookup, evaled) = evaluate_block lookup i vss b in
                 lookup.(b.id).(i) <- Some evaled;
-                (lookup, evaled)
+                (lookup, evaled))
 and evaluate_circuit lookup i vss c = 
     Array.fold_left_map
         (fun lookup -> fun (p, d, _) -> evaluate_port lookup i vss p d)
@@ -188,9 +189,7 @@ let circuit_simulation_to_string n inputs c =
     let input_header = print_header_section c.input_names in
     let output_header = print_header_section (Array.map (fun (_,_,name) -> name) c.outputs) in
     let header = input_header ^ " | " ^ output_header in
-    print_endline header;
     let line = String.init (String.length header) (fun _ -> '-') in
-    print_endline line;
     let outputs = simulate_circuit n inputs c in
     let print_row i = 
         let print_section vs names =
@@ -203,6 +202,8 @@ let circuit_simulation_to_string n inputs c =
         let output_section = print_section outputs.(i) (Array.map (fun (_,_,name) -> name) c.outputs) in
         input_section ^ " | " ^ output_section
     in
+    print_endline header;
+    print_endline line;
     if n == 0 then () else
         let first = print_row 0 in 
             if n == 1 then print_endline first else 

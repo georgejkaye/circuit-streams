@@ -2,19 +2,25 @@ open Logic.Values
 
 open Circuit
 
-let sr_latch id a b c d e f =
+let sr_latch id gate a b c d e f =
+    let (input_a, input_b) = 
+        match gate with
+            | Nor -> ("R", "S")
+            | Nand -> ("S'", "R'")
+            | _ -> failwith ("[sr_latch] Gate incompatible with construction " ^ gate_to_string gate)
+    in
     let rec f_block = {
         id = id;
         ports = [| (Input 0, a); (Block g_block, b) |];
-        gate = Nor;
+        gate = gate;
     } and g_block = {
         id = id + 1;
         ports = [| (Block f_block, c) ; (Input 1, d) |];
-        gate = Nor;
+        gate = gate;
     } 
     in
     (id + 2, {
-        input_names = [| "R" ; "S" |];
+        input_names = [| input_a ; input_b |];
         outputs = [|
             (Block f_block, e, "Q");
             (Block g_block, f, "Q'")
@@ -49,19 +55,25 @@ let sr_latch_instant id gate =
     in
     iterate id (make_iteration) 1 2 2 [| input_a ; input_b |] [| "Q" ; "Q'" |] 
 
-let create_latch_gate id = 
+let create_latch_gate id gate =
+    let (input_a, input_c) =
+        match gate with 
+            | Nand -> ("S", "R")
+            | And -> ("R", "S")
+            | _ -> failwith ("[create_latch_gate] Incompatible gate " ^ gate_to_string gate)
+    in
     let top_block = {
         id = id;
         ports = [| (Input 0, 0) ; (Input 1, 0) |];
-        gate = Nand;
+        gate = gate;
     } in
     let bot_block = {
         id = id + 1;
         ports = [| (Input 1, 0) ; (Input 2, 0) |];
-        gate = Nand;
+        gate = gate;
     } in
     (id + 2, {
-        input_names = [| "S" ; "E" ; "R" |];
+        input_names = [| input_a  ; "E" ; input_c |];
         outputs = [| (Block top_block, 0, "Q") ; (Block bot_block, 0, "Q'") |];
     })
 
@@ -76,15 +88,23 @@ let gated_sr_latch_spec gate latch =
     [| (1, 0, 0, output_names.(0)) ; (1, 1, 0, output_names.(1)) |]
     gate.input_names
 
-let gated_sr_latch id a b c d e f =
-    let (id, gate) = create_latch_gate id in
-    let (id, sr_latch) = sr_latch id a b c d e f in
+let check_gated_sr_latch_gates gate_gate latch_gate = 
+    match (gate_gate, latch_gate) with 
+        | (Nand, Nand) -> ()
+        | (And, Nor) -> ()
+        | _ -> failwith ("[gated_sr_latch] Incompatible gates with construction " ^ gate_to_string gate_gate ^ " " ^ gate_to_string latch_gate)
+
+let gated_sr_latch id gate_gate latch_gate a b c d e f =
+    check_gated_sr_latch_gates gate_gate latch_gate;
+    let (id, gate) = create_latch_gate id gate_gate in
+    let (id, sr_latch) = sr_latch id latch_gate a b c d e f in
     (id, gated_sr_latch_spec gate sr_latch)
 
 
-let gated_sr_latch_instant id = 
-    let (id, gate) = create_latch_gate id in
-    let (id, sr_latch) = sr_latch_instant id Nand in
+let gated_sr_latch_instant id gate_gate latch_gate = 
+    check_gated_sr_latch_gates gate_gate latch_gate;
+    let (id, gate) = create_latch_gate id gate_gate in
+    let (id, sr_latch) = sr_latch_instant id latch_gate in
     (id, gated_sr_latch_spec gate sr_latch)
     
 
