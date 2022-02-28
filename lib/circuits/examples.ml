@@ -144,37 +144,37 @@ let d_flipflop a b c d e f g h i j k =
     }
 
 (** https://en.wikipedia.org/wiki/Flip-flop_(electronics)#/media/File:Edge_triggered_D_flip_flop.svg *)
-let positive_edge_d_flip_flop a b c d e f g h i j k l m n o = 
+let positive_edge_d_flip_flop id a b c d e f g h i j k l m n o = 
     let rec nand0 = {
-        id = 0;
+        id = id;
         gate = Nand;
         ports = [| (Block nand3, a); (Block nand1, b) |];
     } and nand1 = {
-        id = 1;
+        id = id+1;
         gate = Nand;
         ports = [| (Block nand0, c); (Input 0, d) |]
     } and nand2 = {
-        id = 2;
+        id = id+2;
         gate = NandN 3;
         ports = [| (Block nand1, e); (Input 0, f); (Block nand3, g) |]
     } and nand3 = {
-        id = 3;
+        id = id+3;
         gate = Nand;
         ports = [| (Block nand2, h); (Input 1, i) |]
     } and nand4 = {
-        id = 4;
+        id = id+4;
         gate = Nand;
         ports = [| (Block nand1, j) ; (Block nand5, k) |]
     } and nand5 = {
-        id = 5;
+        id = id+5;
         gate = Nand;
         ports = [| (Block nand4, l) ; (Block nand2, m) |]
     }
     in
-    {
+    (id + 6, {
         input_names = [| "Clock"; "Data" |] ;
         outputs = [| (Block nand4, n, "Q") ; (Block nand5, o, "Q'") |]
-    }
+    })
 
 let instant_block_f i =
     let rec nand0 = {
@@ -257,10 +257,10 @@ let combined_instant_blocks id =
 
 type outports = Output of int | Blockport of int * int
 
-let instant_rising_edge_d_flipflop = 
-    let (id, combined1) = combined_instant_blocks 0 in
+let instant_rising_edge_d_flipflop id = 
+    let (id, combined1) = combined_instant_blocks id in
     let (id, combined2) = combined_instant_blocks id in
-    let (_, combined3) = combined_instant_blocks id in
+    let (id, combined3) = combined_instant_blocks id in
     let circ = combine_circuits
         [| 
             (combined1, [| Value Non ; Input 0 ; Input 1 |]) ;
@@ -270,4 +270,4 @@ let instant_rising_edge_d_flipflop =
         [| (2, 1, 0, "Q") ; (2, 2, 0, "Q'") |]
         [| "Clk" ; "Data" |]
     in
-    circ
+    (id, circ)
