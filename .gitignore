@@ -1,6 +1,7 @@
 .vscode
 **/_build/
 *.svg
+!docs/*
 *.png
 *.dot
 *.agdai
