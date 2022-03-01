@@ -4,8 +4,7 @@ open Logic.Approximant
 
 open Streams.Functions
 open Streams.Mealy
-
-open Dot.Mealy_machine
+open Streams.Diagram
 
 (* Example *)
 

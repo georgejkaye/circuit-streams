@@ -1,4 +1,5 @@
 open Logic.Values
+open Logic.Gates 
 open Helpers.Help
 
 (* Weighting on one side of the classical interpretation *)

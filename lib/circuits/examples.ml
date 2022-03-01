@@ -1,6 +1,9 @@
 open Logic.Values
+open Logic.Gates
 
-open Circuit
+open Core
+open Aux
+open Make
 
 let sr_latch id gate a b c d e f =
     let (input_a, input_b) = 
@@ -80,7 +83,7 @@ let create_latch_gate id gate =
 
 let gated_sr_latch_spec gate latch = 
     let output_names = get_output_names latch in
-    combine_circuits 
+    combine 
     [|
         (gate, [| Input 0 ; Input 1 ; Input 2 |]);
         (latch, [| Circuit (gate, 0) ; Circuit (gate, 1) |])   
@@ -98,7 +101,9 @@ let gated_sr_latch id gate_gate latch_gate a b c d e f =
     check_gated_sr_latch_gates gate_gate latch_gate;
     let (id, gate) = create_latch_gate id gate_gate in
     let (id, sr_latch) = sr_latch id latch_gate a b c d e f in
-    (id, gated_sr_latch_spec gate sr_latch)
+    let circuit = gated_sr_latch_spec gate sr_latch in
+    print_int (gates circuit);
+    (id, circuit)
 
 
 let gated_sr_latch_instant id gate_gate latch_gate = 
@@ -244,7 +249,7 @@ let combined_instant_blocks id =
     let (id, circ1) = instant_block_f id in
     let (id, circ2) = instant_block_f' id in
     let (id, circ3) = instant_block_f id in 
-    let circ = combine_circuits 
+    let circ = combine 
         [|
             (circ1, [| Input 0 ; Input 1 |]) ;
             (circ2, [| Circuit (circ1, 1) ; Input 1 ; Input 2 |]) ;
@@ -261,7 +266,7 @@ let instant_rising_edge_d_flipflop id =
     let (id, combined1) = combined_instant_blocks id in
     let (id, combined2) = combined_instant_blocks id in
     let (id, combined3) = combined_instant_blocks id in
-    let circ = combine_circuits
+    let circ = combine
         [| 
             (combined1, [| Value Non ; Input 0 ; Input 1 |]) ;
             (combined2, [| Circuit (combined1, 0) ; Input 0 ; Input 1 |]) ;

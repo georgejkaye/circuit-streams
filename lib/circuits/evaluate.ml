@@ -1,22 +1,22 @@
 open Helpers.Help
 open Logic.Values
+open Logic.Gates
 
-open Circuit
+open Core
+open Aux
 
 (**
     Evaluate a port
 
-    Arguments:
-    - lookup: the lookup table for the blocks in this circuit
-    - acc: the accumulator containing the previous ports in this context
-    - i: the tick at which to evaluate
-    - vss: the list of lists of input values at each tick
-    - p: the port to evaluate
-    - d: the delay applied to this port
+    @param lookup the lookup table for the blocks in this circuit
+    @param acc the accumulator containing the previous ports in this context
+    @param i the tick at which to evaluate
+    @param vss the list of lists of input values at each tick
+    @param p the port to evaluate
+    @param d the delay applied to this port
 
-    Returns:
-    - The lookup table filled with additionally calculated blocks
-    - The evaluated list of values
+    @return The lookup table filled with additionally calculated blocks
+    @return The evaluated list of values
 *)
 let rec evaluate_port lookup i vss p d =
     if i < d 
@@ -62,10 +62,6 @@ and evaluate_circuit lookup i vss c =
         (fun lookup -> fun (p, d, _) -> evaluate_port lookup i vss p d)
         lookup
         c.outputs
-and begin_evaluation i vss c =
-    let lookup = Array.make_matrix (gates c) i None in 
-    let (_, outputs) = evaluate_circuit lookup i vss c in
-    outputs
 
 let simulate_circuit n inputs c =
     let lookup = Array.make_matrix (gates c) n None in
@@ -77,7 +73,7 @@ let simulate_circuit n inputs c =
     in
     outputs
 
-let circuit_simulation_to_string n inputs c = 
+let string_of_simulation n inputs c = 
     let print_header_section names = array_to_string names "" "" " " id
     in
     let input_header = print_header_section c.input_names in

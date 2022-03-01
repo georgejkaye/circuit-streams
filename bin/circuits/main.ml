@@ -1,9 +1,9 @@
 open Circuits.Examples
 open Circuits.Display
-open Circuits.Circuit
+open Circuits.Make
 open Circuits.Evaluate
 open Logic.Values
-open Dot.Circuit_diagram
+open Circuits.Diagram
 
 let () = 
     let s = 
@@ -35,5 +35,5 @@ let () =
     (* let (_, circuit) = positive_edge_d_flip_flop id 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 in *)
     (* let (_, circuit) = instant_rising_edge_d_flipflop id in *)
     write_circuit_to_file circuit "output.dot";
-    circuit_simulation_to_string 100 inputs circuit;
-    draw_outputs circuit 100 inputs
+    string_of_simulation 100 inputs circuit;
+    print_waveforms circuit 100 inputs

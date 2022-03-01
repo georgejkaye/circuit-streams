@@ -1,3 +1,4 @@
 (library
  (name circuits)
- (libraries logic))
+ (private_modules aux)
+ (libraries logic dot))

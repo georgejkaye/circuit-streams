@@ -1,12 +1,14 @@
-open Circuits.Circuit
 open Logic.Values
+open Logic.Gates
 open Helpers.Help
+open Dot.Core
 
 open Core
+open Aux
 
 type outports = Output of int | Blockport of int * int
 
-let generate_dot_from_circuit c =
+let dot_of_circuit c =
     let graph_options = [("rankdir", "LR");("ranksep", "1.5")] in 
     let node_options = [("shape", "record");("width","0.5")] in
     let edge_options = [("fontsize", "10");("arrowsize", "1")] in
@@ -101,5 +103,5 @@ let generate_dot_from_circuit c =
         complete_edge_string ^ "\n}"
 
 let write_circuit_to_file c f = 
-    let dot = generate_dot_from_circuit c in
+    let dot = dot_of_circuit c in
     write_to_file f dot

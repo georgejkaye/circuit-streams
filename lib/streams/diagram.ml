@@ -1,8 +1,8 @@
-open Streams.Mealy
 open Logic.Values
 open Helpers.Help
+open Dot.Core
 
-open Core
+open Mealy
 
 let generate_dot_from_mealy mm assg   = 
     let graph_options = [("rankdir", "LR");("ranksep", "1.5")] in 

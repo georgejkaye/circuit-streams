@@ -1,8 +1,9 @@
 open Logic.Values
 open Helpers.Help
 
-open Circuit
+open Core
 open Evaluate
+open Aux
 
 let high_to_low_u = "┐"
 let high_to_low_d = "└"
@@ -15,20 +16,7 @@ let none = "."
 let short_u = "*"
 let short_d = "*"
 
-(**
-
-Simulate a circuit and represent its inputs and outputs
-graphically as waveforms, as traditionally depicted in
-the literature
-
-Inspired by Jane Street's hardcaml_waveterm library:
-https://github.com/janestreet/hardcaml_waveterm
-
-@param c The circuit to simulate
-@param n The number of ticks to simulate for
-@param inputs The inputs to the circuit
-*)
-let draw_outputs c n inputs =
+let string_of_waveforms c n inputs =
     let name_length = 1 + max (get_longest_string (c.input_names)) (get_longest_string (get_output_names c)) in
     let input_names = Array.map (pad_back name_length) c.input_names in
     let output_names = Array.map (pad_back name_length) (get_output_names c) in
@@ -61,7 +49,6 @@ let draw_outputs c n inputs =
     in
     let input_waveforms = draw_waveforms input_names inputs in
     let output_waveforms = draw_waveforms output_names outputs in
-    List.fold_left (fun _ -> print_endline) () input_waveforms;
-    List.fold_left (fun _ -> print_endline) () output_waveforms;
+    List.fold_left (fun acc -> fun cur -> acc ^ "\n" ^ cur) "" (input_waveforms @ output_waveforms)
 
-
+let print_waveforms c n inputs = print_endline (string_of_waveforms c n inputs)
