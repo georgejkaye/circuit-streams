@@ -1,3 +1,5 @@
+open import Data.Bool using (Bool ; true ; false)
+
 module Two where
 
 data B2 : Set where
@@ -8,9 +10,21 @@ data B2ₗ : Set where
     f : B2ₗ
     t : B2ₗ
 
+B2ₗ-eq : B2ₗ → B2ₗ → Bool
+B2ₗ-eq f f = true
+B2ₗ-eq f t = false
+B2ₗ-eq t f = false
+B2ₗ-eq t t = true
+
 data B2ᵣ : Set where
     f : B2ᵣ
     t : B2ᵣ
+
+B2ᵣ-eq : B2ᵣ → B2ᵣ → Bool
+B2ᵣ-eq f f = true
+B2ᵣ-eq f t = false
+B2ᵣ-eq t f = false
+B2ᵣ-eq t t = true
 
 _∧ₗ_ : B2ₗ → B2ₗ → B2ₗ
 f ∧ₗ f = f

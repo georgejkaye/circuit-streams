@@ -1,3 +1,4 @@
+
 {-# OPTIONS --allow-unsolved-metas #-}
 
 open import Data.Nat using (ℕ ; _<_ ; _≤_ ; z≤n ; zero ) renaming (suc to succ ; _≡ᵇ_ to _≡ℕ_ ; _≤ᵇ_ to _≤ℕ_ ; _⊔_ to max )
@@ -38,3 +39,35 @@ data B : Set → Set where
     b4 : B B4
     b2l : B B2ₗ
     b2r : B B2ᵣ
+
+record is-bool (A : Set) : Set where
+    field
+        tt : A
+        ff : A
+        fn : A → Bool
+        tc : fn tt ≡ true
+        fc : fn ff ≡ false
+
+open is-bool
+
+b2l-isbool : is-bool B2ₗ
+tt b2l-isbool = t
+ff b2l-isbool = f
+fn b2l-isbool f = false
+fn b2l-isbool t = true
+tc b2l-isbool = refl
+fc b2l-isbool = refl
+
+b2r-isbool : is-bool B2ᵣ
+tt b2r-isbool = t
+ff b2r-isbool = f
+fn b2r-isbool f = false
+fn b2r-isbool t = true
+tc b2r-isbool = refl
+fc b2r-isbool = refl
+
+combine : B2ₗ → B2ᵣ → B4
+combine f f = ⊥
+combine f t = f
+combine t f = t
+combine t t = ⊤
