@@ -14,7 +14,10 @@ let list_lte po = List.fold_left2 (fun acc -> fun x -> fun y -> acc && po_lte po
 let array_lte po xs ys = List.fold_left (fun acc -> fun i -> acc && po_lte po xs.(i) ys.(i)) true (nats (Array.length xs))        
 
 let derive_order_from_existing po map =
-    let new_order = List.map (fun (p,ps) -> (List.assoc p map, List.map (fun p -> List.assoc p map) ps)) po.order in
+    let new_order = 
+        List.map (fun (p,ps) -> 
+            (List.assoc p map, List.map (fun p -> List.assoc p map) ps)) po.order 
+    in
     {
         elements = List.map snd map;
         order = new_order;
@@ -62,8 +65,6 @@ let combine_orders po qo =
         elements = fst new_empty_order;
         order = new_ordering
     }
-
-(* Printers *)
 
 let partial_order_to_string po print = 
     let partial_order_entry_to_string poe = 

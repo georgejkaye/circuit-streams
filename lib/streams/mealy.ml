@@ -79,9 +79,9 @@ let stream_to_mealy cs =
 let assign_state_values mm = 
     let determine_state_order = 
         let get_order_from_state n = 
-            let possible_inputs = all_inputs_of_length (mm.inputs) in
+            let possible_inputs = all_inputs_of_width (mm.inputs) in
             let next_states = List.map (fun x -> (x, snd (List.assoc (n, x) mm.transition_function))) possible_inputs in
-            derive_order_from_existing (value_list_order (mm.inputs)) next_states
+            derive_order_from_existing (value_string_order (mm.inputs)) next_states
         in
         let initial_order = {
             elements = nats mm.states;

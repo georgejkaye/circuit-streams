@@ -27,7 +27,7 @@ let () =
         ]
     in
     let clk = make_clock 5 300 false in
-    let inputs = list_of_inputs_to_input_array [s ; clk ; r] in
+    let inputs = transpose_inputs [s ; clk ; r] in
     let id = 0 in
     let (id, instant) = gated_sr_latch_instant id Nand Nand in
     let (_, delayed) = gated_sr_latch id Nand Nand 1 1 1 1 1 1 in

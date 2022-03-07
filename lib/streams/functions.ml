@@ -71,7 +71,7 @@ let stream_derivative cs a =
     }
 
 let get_next_outputs_and_derivatives cs =
-    List.map (fun vs -> (vs, initial_output cs vs, stream_derivative cs vs)) (all_inputs_of_length cs.inputs)
+    List.map (fun vs -> (vs, initial_output cs vs, stream_derivative cs vs)) (all_inputs_of_width cs.inputs)
 
 let tick cs a = (initial_output cs a, stream_derivative cs a)
 
