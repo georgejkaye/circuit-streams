@@ -1,6 +1,7 @@
 open Logic.Values
 open Logic.Gates
-open Helpers.Help
+open Helpers.Lists
+open Helpers.Nats
 open Dot.Core
 
 open Core

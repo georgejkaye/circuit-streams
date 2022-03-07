@@ -1,6 +1,6 @@
 open Logic.Values
 open Functions
-open Helpers.Help
+open Helpers.Nats
 open Logic.Order
 open Table
 

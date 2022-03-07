@@ -1,5 +1,6 @@
 open Logic.Values
-open Helpers.Help
+open Helpers.Strings
+open Helpers.Nats
 
 open Core
 open Evaluate

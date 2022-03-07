@@ -1,4 +1,6 @@
-open Helpers.Help
+open Helpers.Nats
+open Helpers.Arrays
+open Helpers.Lists
 open Logic.Values
 open Logic.Gates
 
@@ -74,7 +76,7 @@ let simulate_circuit n inputs c =
     outputs
 
 let string_of_simulation n inputs c = 
-    let print_header_section names = array_to_string names "" "" " " id
+    let print_header_section names = array_to_string names "" "" " " (fun x -> x)
     in
     let input_header = print_header_section c.input_names in
     let output_header = print_header_section (Array.map (fun (_,_,name) -> name) c.outputs) in

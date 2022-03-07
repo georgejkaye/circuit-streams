@@ -1,4 +1,4 @@
-open Helpers.Help
+open Helpers.Nats
 open Logic.Values
 open Logic.Approximant
 
