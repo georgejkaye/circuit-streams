@@ -43,19 +43,20 @@ to-neg-table tt = convert-table neg tt
 eval-inputs-to-table : {V : Set} {m n k : ℕ} → (V → V → Bool) → table V m n k → Vector V m → Maybe (Vector V n)
 eval-inputs-to-table eq tt vs = foldl (λ acc → λ (fst , snd) → if (vec-eq eq fst vs) then (just snd) else acc) nothing tt
 
-
 table-to-exp : {V : Set} {A : B V} {m n k : ℕ} → (col-unit : V) (row-unit : V) → is-bool V → table V m n k → Vector (exp A m) n
-table-to-exp {V} {A} {m} {n} {k} col-unit row-unit ib trt i = {!   !} where
-    rows : Vector (exp A m) k
-    rows j = if (fn ib ((snd the-row) i)) then fold-row else (const (ff ib)) where
+table-to-exp {V} {A} {m} {n} {k} col-unit row-unit ib trt i = {! fold-rows n !} where
+    make-row : Fin k → exp A m
+    make-row k = if (fn ib (snd the-row i)) then row-expression else const row-unit where
         the-row : Vector V m × Vector V n
-        the-row = trt j
-        tabulated : Vector (exp A m) m
-        tabulated = λ i → if (fn ib (fst the-row i)) then var i else not (var i)
-        fold-row : exp A m 
-        fold-row = foldl (λ acc cur → acc and cur) (const col-unit) tabulated
-    fold-rows : Vector (exp A m) k → (exp A m)
-    fold-rows x = foldl (λ acc cur → acc or cur) (const row-unit) rows
+        the-row = trt k
+        each-cell : Vector (exp A m) m
+        each-cell = λ i → if (fn ib (fst the-row i)) then var i else not (var i)
+        row-expression : exp A m 
+        row-expression = foldl (λ acc cur → acc and cur) (const col-unit) each-cell
+    each-row : Fin n → exp A m 
+    each-row x = {!   !}
+    fold-rows : Fin n → Vector (exp A m) k → (exp A m)
+    fold-rows n x = foldl (λ acc cur → acc or (make-row cur)) (const row-unit) {!   !}
 
 ex : table B4 2 1 3
 ex 0F = ((λ { 0F → ⊤ ; 1F → t }) , λ { 0F → t })
@@ -66,26 +67,6 @@ ex-vec : Vector B4 2
 ex-vec 0F = ⊤
 ex-vec 1F = t
 
--- ex : table b4 2 1 2
--- inputs (rows ex 0F) 0F = ⊤
--- inputs (rows ex 0F) 1F = t
--- outputs (rows ex 0F) 0F = ⊤
--- inputs (rows ex 1F) 0F = ⊤
--- inputs (rows ex 1F) 1F = f
--- outputs (rows ex 1F) 0F = f
+ex-to-exp : Vector (exp b2l 2) 3
+ex-to-exp = table-to-exp t f  b2l-isbool (to-pos-table {!   !})
 
--- ex-assg-1 : Fin 2 → B4
--- ex-assg-1 0F = ⊤
--- ex-assg-1 1F = t
-
--- ex-assg-2 : Fin 2 → B4
--- ex-assg-2 0F = ⊤
--- ex-assg-2 1F = f
-
--- test-1 : B4
--- test-1 = eval {B4} {b4} (((var 0F and (var 1F and const t)) or (const ⊥ or const ⊥))) (ex-assg-1)
-
--- test-2 : B4
--- test-2 = eval {B4} {b4} ((var 0F and (not (var 1F) and const f)) or ((var 0F and (var 1F and const f)) or const ⊥)) (ex-assg-1)
-
-   
