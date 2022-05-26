@@ -75,6 +75,16 @@ let simulate_circuit n inputs c =
     in
     outputs
 
+let equal_combinational c d = 
+    let tests = all_inputs_of_width (Array.length c.input_names) in
+    let test_circuit circ = List.map (fun xs -> (xs, simulate_circuit 1 [| xs |] circ)) tests in
+    let outputs_d = test_circuit d in
+    let outputs_c = test_circuit c in
+    List.fold_left2 (fun acc -> fun (inp, cv) -> fun (_, dv) -> 
+        print_endline ((belnap_value_array_to_string inp) ^ " " ^ (belnap_value_array_to_string cv.(0)) ^ " " ^ (belnap_value_array_to_string dv.(0)));
+        acc && cv.(0) = dv.(0)
+    ) true outputs_c outputs_d
+
 let string_of_simulation n inputs c = 
     let print_header_section names = array_to_string names "" "" " " (fun x -> x)
     in

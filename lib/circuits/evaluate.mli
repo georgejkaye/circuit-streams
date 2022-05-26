@@ -26,3 +26,6 @@ val simulate_circuit : int -> Logic.Values.belnap_value array array ->
 *)
 val string_of_simulation :
     int -> Logic.Values.belnap_value array array -> Core.circuit -> unit
+
+val equal_combinational :
+    Core.circuit -> Core.circuit -> bool

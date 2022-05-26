@@ -1,12 +1,13 @@
-open Circuits.Examples
-open Circuits.Display
-open Circuits.Make
+(* open Circuits.Examples *)
+(* open Circuits.Display *)
+(* open Circuits.Make *)
 open Circuits.Evaluate
-open Logic.Values
-open Circuits.Diagram
+(* open Logic.Values *)
+(* open Circuits.Diagram *)
+open Circuits.Core
 
 let () = 
-    let s = 
+    (* let s = 
         make_waveform [
             (Low, 30);
             (High, 10);
@@ -36,4 +37,65 @@ let () =
     (* let (_, circuit) = instant_rising_edge_d_flipflop id in *)
     write_circuit_to_file circuit "output.dot";
     string_of_simulation 100 inputs circuit;
-    print_waveforms circuit 100 inputs
+    print_waveforms circuit 100 inputs *)
+    let c = 
+        let b1 = {
+            id = 0;
+            ports = [|
+                (Input 0, 0) ;
+                (Input 1, 0)
+            |];
+            gate = And;
+        }
+        in let b2 = {
+            id = 1;
+            ports = [|
+                (Input 0, 0);
+                (Input 1, 0)
+            |];
+            gate = Or;
+        } 
+        in
+        {
+        input_names = [| "x" ; "y" |];
+        outputs = [|
+            (Block b1, 0, "s") ;
+            (Block b2, 0, "t") 
+        |]
+        }
+        in
+        let d = 
+            let b1 = {
+                id = 0;
+                ports = [|
+                    (Input 0, 0) ;
+                    (Input 1, 0)
+                |];
+                gate = And;
+            }
+            in let b2 = {
+                id = 1;
+                ports = [|
+                    (Input 0, 0);
+                    (Input 1, 0)
+                |];
+                gate = Or;
+            } 
+            in let b3 = {
+                id = 2;
+                ports = [|
+                    (Block b1, 0);
+                    (Block b1, 0)
+                |];
+                gate = Or;
+            }
+            in
+            {
+            input_names = [| "x" ; "y" |];
+            outputs = [|
+                (Block b3, 0, "s") ;
+                (Block b2, 0, "t") 
+            |]
+            }
+    in 
+    if equal_combinational c d then print_endline "same" else print_endline "not same";
