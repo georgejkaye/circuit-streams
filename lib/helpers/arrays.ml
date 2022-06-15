@@ -18,3 +18,5 @@ let array_to_string xs lbracket rbracket delimiter to_string =
                             (nats_from 1 len)
     in
     lbracket ^ content ^ rbracket
+
+let array_to_string_def xs to_string = array_to_string xs "[" "]" ";" to_string

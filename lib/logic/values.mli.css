@@ -1,0 +1,17 @@
+/* Error: Expected '.
+ *    ,
+ * 12 |     Belnap's four value logic, Non(e), High, Low, and Both
+ *    |                                                           ^
+ *    '
+ *   lib/logic/values.mli 12:59  root stylesheet */
+
+body::before {
+  font-family: "Source Code Pro", "SF Mono", Monaco, Inconsolata, "Fira Mono",
+      "Droid Sans Mono", monospace, monospace;
+  white-space: pre;
+  display: block;
+  padding: 1em;
+  margin-bottom: 1em;
+  border-bottom: 2px solid black;
+  content: "Error: Expected '.\a    \2577 \a 12 \2502      Belnap's four value logic, Non(e), High, Low, and Both\a    \2502                                                            ^\a    \2575 \a   lib/logic/values.mli 12:59  root stylesheet";
+}

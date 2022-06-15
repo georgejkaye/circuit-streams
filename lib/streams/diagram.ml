@@ -11,7 +11,7 @@ let generate_dot_from_mealy mm assg   =
     let get_node_text s = 
         match assg with 
             | None -> "s" ^ string_of_int s
-            | Some assg -> belnap_value_list_to_string (List.assoc s assg)
+            | Some assg -> belnap_value_array_to_string (List.assoc s assg)
     in
     let node_strings = 
         ((get_node_text 0) ^ "[shape=doublecircle]") ::    

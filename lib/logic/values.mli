@@ -21,6 +21,9 @@ val classical_value_to_string : classical_value -> string
 *)
 type belnap_value = Non | High | Low | Both
 
+val belnap_to_positive : belnap_value -> classical_value
+val belnap_to_negative : belnap_value -> classical_value
+
 (**
     Print None as N, High as T, Low as F, Both as B
 *)

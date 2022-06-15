@@ -35,6 +35,18 @@ let belnap_value_to_classical_string = function
 | Low -> "01"
 | Both -> "11"
 
+let belnap_to_positive = function
+| Non -> False
+| Low -> False
+| High -> True
+| Both -> True
+
+let belnap_to_negative = function
+| Non -> False
+| Low -> True
+| High -> False
+| Both -> True
+
 (**
    Less than on the lattice A4
 *)

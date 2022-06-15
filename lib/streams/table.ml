@@ -10,52 +10,6 @@ type 'a truth_table = {
   matrix: ('a array * 'a array) array;
 }
 
-type 'a translation_table = {
-    translations: ('a logical_expression array * 'a logical_expression array) array;
-}
-
-(**
-   'Right weight' a belnap truth table, that is, translate it into a form
-    using only True and Bot (which correspond to classical tuples 01 and 00 
-    respectively, hence 'right weighting'). We can then convert each belnap
-    value into a classical value based on its right element.
-
-    Returns a classical truth table, and a list of `translations`: a list 
-    of logical expressions to translate each row of the classical table back 
-    into the original belnap value later.
-*)
-let right_weight_truth_table tt = 
-    let weighteds = 
-        List.fold_left 
-            (fun weighteds -> fun i ->
-                let row = tt.matrix.(i) in
-                let translate_array arr n =
-                    let weighted = 
-                        List.fold_left
-                            (fun weighted -> fun i ->
-                                let cur = arr.(i) in
-                                let current_weighted = encode_right_weight cur in
-                                current_weighted :: weighted
-                            )
-                            []
-                            (nats n)
-                    in
-                    Array.of_list (List.rev weighted)
-                in
-                let input_weighted = translate_array (fst row) tt.inputs in
-                let output_weighted = translate_array (snd row) tt.outputs in
-                (input_weighted, output_weighted) :: weighteds
-            )
-            []
-            (nats tt.rows)
-    in
-    {
-        inputs = tt.inputs;
-        outputs = tt.outputs;
-        rows = tt.rows;
-        matrix = Array.of_list (List.rev weighteds)
-    }
-
 (**
     Convert a classical truth table into a series of dnfs, one for each
     column of the output. Each clause of the dnf is defined as the conjunct 
@@ -93,38 +47,6 @@ let convert_classical_table_to_dnf tt =
     in 
     List.map convert_classical_table_to_dnf_column (nats tt.outputs)
 
-let decode_right_weighted_dnf translations row dnf = 
-    let translation_matrix = translations.translations in
-    let decoded = match dnf with    
-        | Or xs ->
-            let decoded_term = Array.mapi 
-                (fun i -> fun clause ->
-                    let decoded_clause =
-                        let decode_clause =
-                            Array.mapi
-                            (fun _ -> function
-                                | Var n -> substitute (Var n) (fst translation_matrix.(i)).(n)
-                                | Not (Var n) -> Not (substitute (Var n) (fst translation_matrix.(i)).(n))
-                                | _ -> failwith "[decode_right_weighted_dnf] Element in clause in dnf is not an atom"
-                            )
-                        in
-                        match clause with
-                        | And xs -> And (decode_clause xs)
-                        | Not (And xs) -> Not (And (decode_clause xs))
-                        | _ -> failwith "[decode_right_weighted_dnf] Clause in dnf is not a conjunction"
-                    in
-                    substitute decoded_clause (snd translation_matrix.(i)).(row)
-                )
-                xs
-            in
-            Or decoded_term
-        | _ -> failwith "[decode_right_weighted_dnf] Expression is not in dnf"
-    in
-    decoded
-
-let decode_right_weighted_dnfs dnfs translation = 
-    List.mapi (decode_right_weighted_dnf translation) dnfs
-
 (* Printer *)
 
 let truth_table_to_string to_string tt =
@@ -140,6 +62,57 @@ let truth_table_to_string to_string tt =
       (fun acc -> fun cur -> acc ^ "\n" ^ cur)
       (List.hd rows)
       (List.tl rows)
+
+
+let convert_truth_table tt translate =
+    let matrix = 
+        Array.map 
+            (fun (inputs, outputs) ->
+                (
+                    Array.map translate inputs, 
+                    Array.map translate outputs
+                )
+            )
+            tt.matrix
+    in
+    { 
+        inputs = tt.inputs;
+        outputs = tt.outputs;
+        rows = tt.rows;
+        matrix = matrix
+    }
+
+let belnap_truth_table_to_positive_classical_table tt =
+    let translate_to_positive = function
+        | Non  -> False
+        | Low  -> False
+        | High -> True
+        | Both -> True
+    in
+    convert_truth_table tt translate_to_positive
+
+let belnap_truth_table_to_negative_classical_table tt =
+        let translate_to_negative = function
+            | Non  -> False
+            | Low  -> True
+            | High -> False
+            | Both -> True
+        in
+        convert_truth_table tt translate_to_negative
+
+let positive_table_to_belnap tt =
+    let translate_to_belnap = function
+        | False -> Non
+        | True -> High
+    in
+    convert_truth_table tt translate_to_belnap
+
+let negative_table_to_belnap tt =
+        let translate_to_belnap = function
+            | False -> Non
+            | True -> Low
+        in
+        convert_truth_table tt translate_to_belnap
 
 (* Printers *)
 

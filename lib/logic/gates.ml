@@ -92,3 +92,18 @@ let eval_gate g xs = match g with
 | OrN _ -> orn_b xs
 | NandN _ -> nandn_b xs
 | NorN _ -> norn_b xs
+
+let classical_not = function
+| True -> False
+| False -> True
+
+let classical_and = function
+| (False, _) -> False
+| (True, x) -> x
+
+let classical_or = function
+| (True, _) -> True
+| (False, x) -> x
+
+let classical_andn = Array.fold_left (fun acc -> fun cur -> classical_and (acc, cur)) True
+let classical_orn = Array.fold_left (fun acc -> fun cur -> classical_or (acc, cur)) False

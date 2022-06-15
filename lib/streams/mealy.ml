@@ -99,9 +99,9 @@ let assign_state_values mm =
     in
     let generate_value_tuples order =
         let generate_single_tuple n = 
-            List.map 
+            Array.map 
                 (fun s -> if (po_lte order s n) then Both else Non)
-                (nats mm.states)
+                (array_nats mm.states)
         in List.map (fun i -> (i, generate_single_tuple i)) (nats mm.states)
     in
     generate_value_tuples determine_state_order
